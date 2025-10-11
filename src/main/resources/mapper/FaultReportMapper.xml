@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.FaultReportMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="FaultReportMap" type="com.office.yancao.entity.FaultReport">
+        <id property="id" column="id"/>
+        <result property="reporterId" column="reporter_id"/>
+        <result property="line" column="line"/>
+        <result property="section" column="section"/>
+        <result property="type" column="type"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="reportTime" column="report_time"/>
+        <result property="repairmanId" column="repairman_id"/>
+        <result property="createdTime" column="created_at"/>
+        <result property="arrivalTime" column="arrival_time"/>
+        <result property="repairTime" column="repair_time"/>
+        <result property="durationMinutes" column="duration_minutes"/>
+    </resultMap>
+
+    <!-- 插入故障报告 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO fault_reports (
+            reporter_id,
+            line,
+            section,
+            type,
+            description,
+            status,
+            report_time,
+            created_Time
+        ) VALUES (
+                     #{reporterId},
+                     #{line},
+                     #{section},
+                     #{type},
+                     #{description},
+                     #{status},
+                     #{reportTime},
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="findById" resultMap="FaultReportMap">
+        SELECT * FROM fault_reports WHERE id = #{id}
+    </select>
+
+    <!-- 更新为已到达状态 -->
+    <update id="updateToArrived">
+        UPDATE fault_reports
+        SET
+            arrival_time = NOW(),
+            status = 'progress'
+        WHERE
+            id = #{id}
+          AND status = 'reported'
+    </update>
+
+    <!-- 更新为已修复状态 -->
+    <update id="updateToRepaired">
+        UPDATE fault_reports
+        SET
+            repair_time = NOW(),
+            status = 'repaired'
+        WHERE
+            id = #{id}
+          AND status = 'progress'
+    </update>
+
+    <!-- 分页查询所有 -->
+    <select id="findAll" resultMap="FaultReportMap">
+        SELECT * FROM fault_reports
+        ORDER BY report_time DESC
+            LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectByType" parameterType="string" resultMap="FaultReportMap">
+        SELECT *
+        FROM fault_reports
+        WHERE type = #{type}
+        AND report_time >= CURDATE() -- 今天开始
+
+        ORDER BY report_time DESC
+    </select>
+
+    <select id="selectByAdmin" parameterType="string" resultMap="FaultReportMap">
+        SELECT *
+        FROM fault_reports
+        WHERE report_time >= CURDATE() -- 今天开始
+        ORDER BY report_time DESC
+    </select>
+
+    <select id="selectByUserId" parameterType="long" resultMap="FaultReportMap">
+        SELECT *
+        FROM fault_reports
+        WHERE reporter_id = #{userId}
+          AND report_time >= CURDATE() -- 今天开始
+
+        ORDER BY report_time DESC
+    </select>
+</mapper>

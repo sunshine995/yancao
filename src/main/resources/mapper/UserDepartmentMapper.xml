@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.UserDepartmentMapper">
+
+
+    <select id="selectDepartmentId" resultType="com.office.yancao.entity.UserDepartment">
+        SELECT *
+        FROM user_department
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 获取某个部门的直接子部门ID列表 -->
+    <select id="getDirectChildDeptIds" resultType="long">
+        SELECT id
+        FROM department
+        WHERE parent_id = #{parentId}
+    </select>
+
+    <select id="getUserIdsByDeptIds" resultType="long">
+        SELECT DISTINCT user_id
+        FROM user_department
+        WHERE department_id IN
+        <foreach item="departmentId" collection="departmentIds" open="(" separator="," close=")">
+            #{departmentId}
+        </foreach>
+    </select>
+
+    <select id="getDirectChildren" resultType="com.office.yancao.entity.Department">
+        SELECT *
+        FROM department
+        WHERE parent_id = #{parentId}
+    </select>
+
+
+</mapper>

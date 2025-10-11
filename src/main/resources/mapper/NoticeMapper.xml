@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.NoticeMapper">
+
+    <insert id="insertNotice" parameterType="com.office.yancao.entity.Notice" useGeneratedKeys="true" keyProperty = "id">
+        INSERT INTO notice (title, content, type, created_by, created_at)
+        VALUES (#{title}, #{content}, #{type}, #{createdBy}, NOW())
+    </insert>
+
+    <insert id="insertReceivers">
+        INSERT INTO notice_receiver (notice_id, user_id, notice_time)
+        VALUES
+        <foreach item="r" collection="receivers" separator=",">
+            (#{r.noticeId}, #{r.userId}, #{r.noticeTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertReceiver">
+        INSERT INTO notice_receiver (notice_id, user_id, notice_time)
+        VALUES (#{noticeId}, #{userId}, #{noticeTime})
+    </insert>
+
+    <select id="getUsersByDeptId" resultType="com.office.yancao.entity.UserDepartment">
+        SELECT *
+        FROM user_department
+        WHERE department_id = #{departmentId}
+    </select>
+
+    <select id="listUsers" resultType="com.office.yancao.entity.User">
+        SELECT id, username, phone, position, role
+        FROM user_info
+        WHERE role = 'USER'
+    </select>
+
+    <select id="listDepartments" resultType="com.office.yancao.entity.Department">
+        SELECT id, name FROM department ORDER BY name
+    </select>
+
+    <select id="listNoticesForUser" resultType="com.office.yancao.dto.NoticeRespDto">
+        SELECT n.id, n.title, n.content, n.created_by AS createdBy, n.created_at AS createdAt,
+        COALESCE(nr.is_read, 0) AS isRead
+        FROM notice n
+        LEFT JOIN notice_receiver nr ON n.id = nr.notice_id
+        WHERE n.is_deleted = 0
+        AND (
+        nr.user_id = #{userId}
+        )
+        <if test="startTime != null and startTime != ''">
+            AND nr.notice_time >= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND nr.notice_time <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY n.created_at DESC
+    </select>
+
+
+    <select id="getReadStats" resultType="com.office.yancao.entity.ReadStats">
+        SELECT
+        COUNT(*) AS totalCount,
+        SUM(CASE WHEN is_read THEN 1 ELSE 0 END) AS readCount
+        FROM notice_receiver
+        WHERE notice_id = #{noticeId}
+    </select>
+
+    <select id="getNoticeDetail" resultType="com.office.yancao.entity.Notice">
+        SELECT*
+        FROM notice
+        WHERE id = #{noticeId} and is_deleted = 0
+    </select>
+
+
+    <update id="setMarkAsRead">
+        UPDATE notice_receiver
+        SET
+        is_read = 1,
+        read_at = NOW() -- MySQL 使用 NOW(), PostgreSQL 使用 NOW(), Oracle 使用 SYSDATE
+        WHERE
+        notice_id = #{noticeId}
+        AND user_id = #{userId}
+    </update>
+
+    <!-- 查询未读用户列表 -->
+    <select id="selectUnreadUsersByNoticeId" resultType="com.office.yancao.dto.UnreadUserDTO">
+        SELECT
+            ur.user_id AS userId,
+            ui.username AS username,
+            ui.phone AS phone
+        FROM notice_receiver ur
+                 INNER JOIN user_info ui ON ur.user_id = ui.id
+        WHERE ur.notice_id = #{noticeId}
+          AND ur.is_read = 0
+        ORDER BY ui.username
+    </select>
+</mapper>

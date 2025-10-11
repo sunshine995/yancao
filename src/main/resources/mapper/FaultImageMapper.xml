@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.FaultImageMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="FaultImageMap" type="com.office.yancao.entity.FaultImage">
+        <id property="id" column="id"/>
+        <result property="faultId" column="fault_id"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="imageType" column="image_type"/>
+        <result property="uploadTime" column="upload_time"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 插入故障图片 -->
+    <insert id="insert" parameterType="com.office.yancao.entity.FaultImage">
+        INSERT INTO fault_images (
+            fault_id,
+            image_url,
+            image_type,
+            upload_time,
+            created_at
+        ) VALUES (
+                     #{faultId},
+                     #{imageUrl},
+                     #{imageType},
+                     NOW(),
+                     NOW()
+                 )
+    </insert>
+
+    <insert id="insertNoticeImage" parameterType="com.office.yancao.entity.FaultImage">
+        INSERT INTO fault_images (
+            notice_id,
+            image_url,
+            upload_time,
+            created_at
+        ) VALUES (
+                     #{noticeId},
+                     #{imageUrl},
+                     NOW(),
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 根据故障ID和图片类型查询图片URL列表 -->
+    <select id="findByFaultIdAndType" resultType="java.lang.String">
+        SELECT
+            image_url
+        FROM
+            fault_images
+        WHERE
+            fault_id = #{faultId}
+          AND image_type = #{imageType}
+    </select>
+
+    <select id="findByNoticeId" resultType="java.lang.String">
+        SELECT
+            image_url
+        FROM
+            fault_images
+        WHERE
+            notice_id = #{noticeId}
+    </select>
+</mapper>

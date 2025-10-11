@@ -1,0 +1,39 @@
+server:
+  port: 8081
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/yancao?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 12345
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # MyBatis 配置
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  web:
+    resources:
+      static-locations: file:E:/yancao/  # 物理路径映射
+  mvc:
+    static-path-pattern: /images/**     # 虚拟访问路径
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.office.yancao.entity
+  configuration:
+    map-underscore-to-camel-case: true   # 开启驼峰命名
+
+# JWT 配置（关键！新增这部分）
+jwt:
+  secret: cHV5eG9uZy5jbiBpcyB0aGUgYmVzdCBTcHJpbmcgQm9vdCBKV1Qga2V5IGZvciBwcm9kdWN0aW9uICEhISEK
+  expiration: 604800
+
+file:
+  upload-path: E:/yancao/
+  base-url: http://localhost:8081/images/
