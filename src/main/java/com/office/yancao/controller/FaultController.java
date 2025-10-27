@@ -38,7 +38,6 @@ public class FaultController {
 
         try {
             FaultReportDTO dto = new FaultReportDTO();
-            System.out.println(images.length);
             dto.setReporterId(reporterId);
             dto.setSection(section);
             dto.setLine(line);

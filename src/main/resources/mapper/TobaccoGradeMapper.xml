@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.TobaccoGradeMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="TobaccoGradeResultMap" type="com.office.yancao.entity.TobaccoGrade">
+        <id property="id" column="id"/>
+        <result property="gradeName" column="grade_name"/>
+        <result property="batchNumber" column="batch_number"/>
+        <result property="weight" column="weight"/>
+    </resultMap>
+
+    <!-- 查询所有烟品信息 -->
+    <select id="findAll" resultMap="TobaccoGradeResultMap">
+        SELECT id, grade_name, batch_number, weight
+        FROM tobacco_grade_table
+    </select>
+
+    <!-- 根据ID查询烟品信息 -->
+    <select id="findById" parameterType="java.lang.Long" resultMap="TobaccoGradeResultMap">
+        SELECT id, grade_name, batch_number, weight
+        FROM tobacco_grade_table
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据牌号名称查询烟品信息 -->
+    <select id="findByGradeName" parameterType="java.lang.String" resultMap="TobaccoGradeResultMap">
+        SELECT id, grade_name, batch_number, weight
+        FROM tobacco_grade_table
+        WHERE grade_name = #{gradeName}
+    </select>
+
+    <!-- 新增烟品信息 -->
+    <insert id="insert" parameterType="com.office.yancao.entity.TobaccoGrade" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tobacco_grade_table (grade_name, batch_number, weight)
+        VALUES (#{gradeName}, #{batchNumber}, #{weight})
+    </insert>
+
+    <!-- 更新烟品信息 -->
+    <update id="update" parameterType="com.office.yancao.entity.TobaccoGrade">
+        UPDATE tobacco_grade_table
+        SET grade_name = #{gradeName},
+            batch_number = #{batchNumber},
+            weight = #{weight}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除烟品信息 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM tobacco_grade_table
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据牌号名称删除烟品信息 -->
+    <delete id="deleteByGradeName" parameterType="java.lang.String">
+        DELETE FROM tobacco_grade_table
+        WHERE grade_name = #{gradeName}
+    </delete>
+</mapper>

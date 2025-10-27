@@ -48,8 +48,12 @@ public class NoticeService {
         notice.setCreatedAt(date);
         notice.setIsDeleted(false);
         noticeMapper.insertNotice(notice);
-        List<MultipartFile> images = Arrays.asList(dto.getImages());
-        System.out.println(notice.getId());
+        List<MultipartFile> images = new ArrayList<>();
+        if (dto.getImages() != null) {
+            images = Arrays.asList(dto.getImages());
+        } else {
+            images = new ArrayList<>(); // 创建空列表而不是 null
+        }
         // 2. 保存图片
         if (images != null && !images.isEmpty()) {
             File dir = new File(uploadPath);

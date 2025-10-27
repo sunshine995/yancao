@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.WorkMapper">
+
+    <!-- 保存工单 -->
+    <insert id="saveWork" parameterType="com.office.yancao.entity.Work">
+        INSERT INTO work (
+            user_id, classes, line, number, brand, batchNo,
+            yield, is_remark, remark, images, create_time
+        ) VALUES (
+                     #{userId}, #{classes}, #{line}, #{number}, #{brand}, #{batchNo},
+                     #{yield}, #{isRemark}, #{remark}, #{images}, #{createTime}
+                 )
+    </insert>
+
+    <!-- 根据ID查询工单 -->
+    <select id="getWorkById" resultType="com.office.yancao.entity.Work">
+        SELECT
+            id, user_id AS userId, classes As class, line, number, brand, batchNo,
+            yield, is_remark AS isRemark, remark, images, create_time AS createTime
+        FROM work
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有工单 -->
+    <select id="listAllWorks" resultType="com.office.yancao.entity.Work">
+        SELECT
+            id, user_id AS userId, class AS classes, line, number, brand, batchNo,
+            yield, is_remark AS isRemark, remark, images, create_time AS createTime
+        FROM work
+    </select>
+
+    <!-- 根据用户ID查询工单 -->
+    <select id="listWorksByUserId" resultType="com.office.yancao.entity.Work">
+        SELECT
+            id, user_id AS userId, class AS classes, line, number, brand, batchNo,
+            yield, is_remark AS isRemark, remark, images, create_time AS createTime
+        FROM work
+        WHERE user_id = #{userId}
+    </select>
+
+    <!--  基础字段映射  -->
+    <sql id="Base_Column_List"> id, user_id, classes, line, number, brand, batchNo, yield, is_remark, remark, images, create_time </sql>
+    <!--  根据用户ID查询该用户所在班级的今日工单  -->
+    <select id="selectTodayWorkByUserId" resultType="com.office.yancao.entity.Work"> SELECT w.id, w.user_id, w.classes, w.line, w.number, w.brand, w.batchNo, w.yield, w.is_remark, w.remark, w.images, w.create_time FROM work w WHERE w.user_id = #{userId} AND w.create_time BETWEEN #{startTime} AND #{endTime} ORDER BY w.create_time DESC </select>
+    <!--  根据班级查询今日工单  -->
+    <select id="selectTodayWorkByClass" resultType="com.office.yancao.entity.Work"> SELECT id, user_id, classes, line, number, brand, batchNo, yield, is_remark, remark, images, create_time FROM work WHERE classes = #{classes} AND create_time BETWEEN #{startTime} AND #{endTime} ORDER BY create_time DESC </select>
+    <!--  获取今日工单总数  -->
+    <select id="countTodayWorkByClass" resultType="java.lang.Integer"> SELECT COUNT(*) FROM work WHERE classes = #{classes} AND create_time BETWEEN #{startTime} AND #{endTime} </select>
+</mapper>

@@ -48,7 +48,6 @@ public class NoticeController {
     @GetMapping("/list")
     public Result<List<NoticeRespDto>> listNotices(@RequestParam(value = "userId") Long userId, @RequestParam(value = "startTime") String startTime,
                                                    @RequestParam(value = "endTime") String endTime) {
-        System.out.println(userId);
         return Result.success(noticeService.listNoticesForUser(userId, startTime, endTime));
     }
 
