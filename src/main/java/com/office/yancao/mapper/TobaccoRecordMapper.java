@@ -29,7 +29,7 @@ public interface TobaccoRecordMapper {
      */
     int insertExitTobacco(TobaccoRecord record);
 
-
+    
 
     /**
      * 根据工单ID查询已加入的烟叶
@@ -40,10 +40,10 @@ public interface TobaccoRecordMapper {
 
     //移除按钮 更新状态为exit，清空addWorkOrderId，刷新操作时间
     int updateToExit(
-            @Param("brand") String brand,
-            @Param("batchNumber") String batchNumber,
-            @Param("addWorkOrderId") Long addWorkOrderId,
-            @Param("newOperateTime") java.time.LocalDateTime newOperateTime
+        @Param("brand") String brand,
+        @Param("batchNumber") String batchNumber,
+        @Param("addWorkOrderId") Long addWorkOrderId,
+        @Param("newOperateTime") java.time.LocalDateTime newOperateTime
     );
 
     // 更新为“已加入状态”，设置工单ID和操作时间

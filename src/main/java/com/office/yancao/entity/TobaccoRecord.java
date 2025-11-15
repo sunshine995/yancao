@@ -18,7 +18,7 @@ public class TobaccoRecord {
 
     // 新增：退出时关联的工单ID（必传）
     private Long exitWorkOrderId;
-
+    
     // 新增：加入时关联的工单ID（未加入则为null）
     private Long addWorkOrderId;
 }

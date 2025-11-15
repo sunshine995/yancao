@@ -25,15 +25,19 @@
                  )
     </insert>
 
-    <select id="selectOneByBatchIdAndSegment"
-            parameterType="map"
-            resultMap="BaseResultMap">
-        SELECT
-            *
-        FROM verification_data
-        WHERE batch_id = #{batchId}
-          AND segment = #{segment}
-            LIMIT 1
-    </select>
+    <select id="selectLatestByBatchIdAndSegment"
+        parameterType="map"
+        resultMap="BaseResultMap">
+    SELECT
+        *
+    FROM verification_data
+    WHERE batch_id = #{batchId}
+      AND segment = #{segment}
+    ORDER BY 
+        verified_time IS NULL,  -- 确保非null值排在前面
+        verified_time DESC,     -- 按验证时间降序
+        id DESC                 -- 验证时间相同时按id降序
+    LIMIT 1
+</select>
 
 </mapper>

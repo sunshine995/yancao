@@ -11,13 +11,13 @@ public class TobaccoRecordDTO {
     private String brand;
     private String batchNumber;
     private BigDecimal weight;
-    private LocalDateTime exitTime; // 退出时间
+private LocalDateTime exitTime; // 退出时间
     private LocalDateTime addTime; // 加入时间（可从operateTime转换）
     private Boolean isTimeout;
-
-    // 新增：退出关联的工单ID
+   
+     // 新增：退出关联的工单ID
     private Long exitWorkOrderId;
-
+    
     // 新增：加入关联的工单ID
     private Long addWorkOrderId;
 }

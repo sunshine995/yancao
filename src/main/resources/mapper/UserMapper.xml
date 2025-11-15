@@ -8,7 +8,7 @@
     <!--  根据用户名查询用户  -->
     <select id="getUserByUsername" resultType="com.office.yancao.entity.User"> SELECT * FROM user_info WHERE username = #{username} </select>
     <!--  插入用户信息  -->
-    <insert id="insertUser" parameterType="com.office.yancao.entity.User" useGeneratedKeys="true" keyProperty="id"> INSERT INTO user_info ( username, password, phone, position, role, classes, section, party, member, department ) VALUES ( #{username}, #{password}, #{phone}, #{position}, #{role}, #{classes}, #{section}, #{party}, #{member}, #{department} ) </insert>
+    <insert id="insertUser" parameterType="com.office.yancao.entity.User" useGeneratedKeys="true" keyProperty="id"> INSERT INTO user_info ( username, password, phone, birthday, position, role, classes, section, line, support_position, party, member, department ) VALUES ( #{username}, #{password}, #{phone}, #{birthday}, #{position}, #{role}, #{classes}, #{section}, #{line}, #{support_position}, #{party}, #{member}, #{department} ) </insert>
     <!--  插入用户部门关联关系  -->
     <insert id="insertUserDepartment"> INSERT INTO user_department ( user_id, department_id ) VALUES ( #{userId}, #{departmentId} ) </insert>
     <!--  根据用户ID查询用户所在班级  -->
@@ -17,7 +17,7 @@
     </select>
 
     <select id="listUsers" resultType="com.office.yancao.entity.User">
-        SELECT id, username, phone, position, role
+        SELECT id, username, password, phone, birthday, position, role, classes, section, line, support_position, party, member, department
         FROM user_info
         WHERE role = 'USER'
     </select>

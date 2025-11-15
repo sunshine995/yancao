@@ -24,13 +24,13 @@ public class TobaccoRecordService {
     // 直接在服务类中实现方法（无需接口定义）
     public List<TobaccoRecordDTO> getAllExitTobaccos(String searchKeyword) {
         List<TobaccoRecord> records;
-
+        
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
             records = tobaccoRecordMapper.selectAllExitTobaccosWithKeyword(searchKeyword);
         } else {
             records = tobaccoRecordMapper.selectAllExitTobaccosWithoutKeyword();
         }
-
+        
         return records.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
@@ -40,9 +40,9 @@ public class TobaccoRecordService {
         return records.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    // 3. 添加退出烟叶记录
+     // 3. 添加退出烟叶记录
     public TobaccoRecord addExitTobacco(TobaccoRecord tobaccoRecord) {
-
+       
         // 设置固定字段值（与SQL插入逻辑一致）
         tobaccoRecord.setStatus("exit"); // 状态固定为"exit"
         tobaccoRecord.setSubmitStatus("unsubmitted"); // 提交状态固定为未提交
@@ -77,7 +77,7 @@ public class TobaccoRecordService {
         if (rows != 1) {
             throw new RuntimeException("移除失败，请重试");
         }
-
+        
         // 3. 创建并返回更新后的实体对象
         TobaccoRecord record = new TobaccoRecord();
         record.setBrand(brand);
@@ -88,7 +88,7 @@ public class TobaccoRecordService {
         return record;
     }
 
-    public TobaccoRecord addToBatch(String brand, String batchNumber, Long addWorkOrderId) {
+public TobaccoRecord addToBatch(String brand, String batchNumber, Long addWorkOrderId) {
         // 参数校验
         if (brand == null || brand.trim().isEmpty()) {
             throw new RuntimeException("牌号不能为空");
@@ -100,7 +100,7 @@ public class TobaccoRecordService {
             throw new RuntimeException("工单ID不能为空");
         }
 
-
+        
         // 执行更新操作
         LocalDateTime now = LocalDateTime.now();
         int rows = tobaccoRecordMapper.updateToAdded(brand, batchNumber, addWorkOrderId, now);
