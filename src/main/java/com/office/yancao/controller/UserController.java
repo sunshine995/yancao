@@ -29,7 +29,15 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody LoginDTO loginDTO){
-        return Result.success(userService.findByUsername(loginDTO));
+        Map<String, Object> byUsername = userService.findByUsername(loginDTO);
+        if (byUsername.get("code") == "200") {
+            return Result.success(byUsername);
+        }else {
+            return Result.fail("用户密码或密码错误");
+        }
+
+
+
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.office.yancao.mapper;
 
+import com.office.yancao.dto.admin.UserQuery;
 import com.office.yancao.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -27,7 +28,16 @@ public interface UserMapper {
     /**
      * 根据用户ID查询用户所在班级
      */
-    String getUserClassById(@Param("userId") Integer userId);
+    String getUserClassById(@Param("userId") Long userId);
 
     List<User> listUsers();
+
+    // 根据用户班级获取所有用户的Id
+    List<Long> getUserByClass(@Param("classes") String classes);
+
+    // 根据用户党支部获取所有用户的Id
+    List<Long> getUserByParty(@Param("party") String party, @Param("member") String member);
+
+    // admin方法，根据用户传入信息查询所有用户信息
+    List<User> selectUserList(UserQuery query);
 }

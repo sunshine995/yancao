@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.UsageDetailMapper">
+    <insert id="batchInsert">
+        INSERT INTO usage_detail (record_id, material_type, usage_type, quantity, remark)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.recordId},
+            #{item.materialType},
+            #{item.usageType},
+            #{item.quantity},
+            #{item.remark}
+            )
+        </foreach>
+    </insert>
+
+
+
+
+</mapper>

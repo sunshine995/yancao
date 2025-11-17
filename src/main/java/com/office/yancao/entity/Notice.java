@@ -15,5 +15,14 @@ public class Notice {
     private Date createdAt;
     private Boolean isDeleted;
     private String images;
+    private String filesUrl;
+    private String filesName;
+    private String videoUrl;
+
+    // 返回给前端的
     private List<String> imagesUrl;
+    private List<String> fileUrls;
+    private List<String> fileOriginUrls;
+    private List<String> videoUrls;
+
 }

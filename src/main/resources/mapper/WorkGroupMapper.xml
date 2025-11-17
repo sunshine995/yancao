@@ -72,4 +72,21 @@
         WHERE group_id = #{groupId} AND user_id = #{userId}
     </delete>
 
+    <delete id="deleteByGroupId">
+        DELETE FROM user_group
+        WHERE group_id = #{groupId}
+    </delete>
+
+
+    <select id="getUsersById" resultType="java.lang.Long">
+        SELECT user_id as userId FROM user_group
+        where operator_id = #{creatorId} and group_id = #{groupId}
+    </select>
+
+    <insert id="insertUserGroup" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO user_group (group_id, user_id, operator_id)
+        VALUES
+            (#{groupId}, #{userId}, #{operatorId})
+    </insert>
+
 </mapper>

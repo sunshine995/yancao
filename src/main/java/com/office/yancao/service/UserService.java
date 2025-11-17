@@ -1,10 +1,12 @@
 package com.office.yancao.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.office.yancao.dto.LoginDTO;
 import com.office.yancao.dto.RegisterDTO;
+import com.office.yancao.dto.admin.UserQuery;
 import com.office.yancao.entity.Department;
 import com.office.yancao.entity.User;
-import com.office.yancao.mapper.UserDepartmentMapper;
 import com.office.yancao.mapper.UserMapper;
 import com.office.yancao.untils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +24,6 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
-    private UserDepartmentMapper userDepartmentMapper;
-
-    @Autowired
     private JwtUtil jwtUtil;
 
     /**
@@ -38,14 +37,14 @@ public class UserService {
         User dbUser = userMapper.getUsersById(loginDTO.getUserId());
         if (dbUser == null) {
             System.out.println("用户不存在");
-            result.put("code", 401);
+            result.put("code", "401");
             result.put("msg", "用户不存在");
             return result;
         }
 
         // 2. 验证密码（假设密码已加密存储）
         if (!verifyPassword(loginDTO.getPassword(), dbUser.getPassword())) {
-            result.put("code", 401);
+            result.put("code", "401");
             result.put("msg", "密码错误");
             return result;
         }
@@ -55,7 +54,7 @@ public class UserService {
 
 
         // 4. 构造返回数据
-        result.put("code", 200);
+        result.put("code", "200");
         result.put("msg", "登录成功");
         result.put("token", token);
         result.put("userId", dbUser.getId());
@@ -106,51 +105,51 @@ public class UserService {
         user.setMember(registerDTO.getMember());
 
         // 3. 根据departmentId查询部门名称并设置
-        if (registerDTO.getDepartmentId() != null) {
-            try {
-                // 使用UserDepartmentMapper获取部门信息（根据系统实际情况调整参数）
-                List<Department> departments = userDepartmentMapper.getDirectChildren(0L); // 使用0作为顶级部门ID
-                System.out.println("查询到的部门列表: " + departments);
-                System.out.println("查找的部门ID: " + registerDTO.getDepartmentId());
-
-                // 如果直接查询没有结果，尝试查询所有部门
-                if (departments == null || departments.isEmpty()) {
-                    // 备用方案：直接查询department表的所有部门
-                    departments = userDepartmentMapper.getDirectChildren(null);
-                    System.out.println("尝试备用查询，部门列表: " + departments);
-                }
-
-                Optional<Department> deptOptional = departments.stream()
-                        .filter(dept -> {
-                            boolean match = dept.getId().equals(registerDTO.getDepartmentId());
-                            System.out.println("检查部门: " + dept.getId() + "=" + dept.getName() + ", 匹配结果: " + match);
-                            return match;
-                        })
-                        .findFirst();
-
-                if (deptOptional.isPresent()) {
-                    user.setDepartment(deptOptional.get().getName());
-                    System.out.println("设置部门名称: " + deptOptional.get().getName());
-                } else {
-                    System.out.println("未找到匹配的部门ID: " + registerDTO.getDepartmentId());
-                    // 特殊处理：如果部门ID为1，直接设置为"制丝部门"
-                    if (registerDTO.getDepartmentId() != null && registerDTO.getDepartmentId() == 1L) {
-                        user.setDepartment("制丝部门");
-                        System.out.println("特殊处理：部门ID为1，直接设置为制丝部门");
-                    } else {
-                        // 设置默认部门名称，避免null
-                        user.setDepartment("未分配部门");
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("查询部门信息出错: " + e.getMessage());
-                // 出错时也设置默认值
-                user.setDepartment("部门信息获取失败");
-            }
-        } else {
-            // 如果没有提供departmentId，也设置默认值
-            user.setDepartment("无部门");
-        }
+//        if (registerDTO.getDepartmentId() != null) {
+//            try {
+//                // 使用UserDepartmentMapper获取部门信息（根据系统实际情况调整参数）
+//                List<Department> departments = userDepartmentMapper.getDirectChildren(0L); // 使用0作为顶级部门ID
+//                System.out.println("查询到的部门列表: " + departments);
+//                System.out.println("查找的部门ID: " + registerDTO.getDepartmentId());
+//
+//                // 如果直接查询没有结果，尝试查询所有部门
+//                if (departments == null || departments.isEmpty()) {
+//                    // 备用方案：直接查询department表的所有部门
+//                    departments = userDepartmentMapper.getDirectChildren(null);
+//                    System.out.println("尝试备用查询，部门列表: " + departments);
+//                }
+//
+//                Optional<Department> deptOptional = departments.stream()
+//                        .filter(dept -> {
+//                            boolean match = dept.getId().equals(registerDTO.getDepartmentId());
+//                            System.out.println("检查部门: " + dept.getId() + "=" + dept.getName() + ", 匹配结果: " + match);
+//                            return match;
+//                        })
+//                        .findFirst();
+//
+//                if (deptOptional.isPresent()) {
+//                    user.setDepartment(deptOptional.get().getName());
+//                    System.out.println("设置部门名称: " + deptOptional.get().getName());
+//                } else {
+//                    System.out.println("未找到匹配的部门ID: " + registerDTO.getDepartmentId());
+//                    // 特殊处理：如果部门ID为1，直接设置为"制丝部门"
+//                    if (registerDTO.getDepartmentId() != null && registerDTO.getDepartmentId() == 1L) {
+//                        user.setDepartment("制丝部门");
+//                        System.out.println("特殊处理：部门ID为1，直接设置为制丝部门");
+//                    } else {
+//                        // 设置默认部门名称，避免null
+//                        user.setDepartment("未分配部门");
+//                    }
+//                }
+//            } catch (Exception e) {
+//                System.out.println("查询部门信息出错: " + e.getMessage());
+//                // 出错时也设置默认值
+//                user.setDepartment("部门信息获取失败");
+//            }
+//        } else {
+//            // 如果没有提供departmentId，也设置默认值
+//            user.setDepartment("无部门");
+//        }
 
         // 3. 插入用户信息
         int insertResult = userMapper.insertUser(user);
@@ -186,5 +185,30 @@ public class UserService {
 
     public List<User> listUsers() {
         return userMapper.listUsers();
+    }
+
+    public PageInfo<User> getUserList(UserQuery query) {
+        if (!query.getClasses().equals("管理组")){
+            return null;
+        }
+        if (query.getPosition().equals("甲班班长")){
+            query.setClasses("甲班");
+        }else if (query.getPosition().equals("乙班班长")){
+            query.setClasses("乙班");
+        }else {
+            query.setClasses("all");
+        }
+        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        System.out.println(query.getClasses());
+        try {
+            List<User> userList = userMapper.selectUserList(query);
+            System.out.println("【查询成功】结果数量: " + (userList == null ? "null" : userList.size()));
+            return new PageInfo<>(userList);
+        } catch (Exception e) {
+            System.out.println("【❌ 查询失败！异常如下】");
+            e.printStackTrace(); // 关键！看具体报什么错
+            throw e; // 或按需处理
+        }
+
     }
 }

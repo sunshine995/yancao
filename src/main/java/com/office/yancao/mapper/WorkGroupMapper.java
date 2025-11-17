@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper
 public interface WorkGroupMapper {
 
-    int insert(WorkGroup workGroup);
+    Long insert(WorkGroup workGroup);
 
     int updateById(WorkGroup workGroup);
 
@@ -27,4 +27,9 @@ public interface WorkGroupMapper {
     List<GroupUser> getGroupUserByGroupId(Long creatorId, Long groupId);
 
     int deleteByGroupIdAndUserId(@Param("groupId") Long groupId, @Param("userId") Long userId);
+    int deleteByGroupId(@Param("groupId") Long groupId);
+
+    List<Long> getUsersById(@Param("groupId") Long groupId, Long creatorId);
+
+    int insertUserGroup(GroupUser groupUser);
 }

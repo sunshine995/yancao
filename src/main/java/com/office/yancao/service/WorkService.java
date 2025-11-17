@@ -79,7 +79,7 @@ public class WorkService {
     }
 
 
-    public Map<String, Object> getTodayWorkOrdersByUserId(Integer userId) {
+    public Map<String, Object> getTodayWorkOrdersByUserId(Long userId) {
         Map<String, Object> result = new HashMap<>();
 
         // 获取用户所在班级
@@ -121,7 +121,7 @@ public class WorkService {
     }
 
 
-    public String getUserClass(Integer userId) {
+    public String getUserClass(Long userId) {
         // 从user_info表查询用户所在班级
         String userClass = userMapper.getUserClassById(userId);
         // 如果查询不到，返回默认值甲班

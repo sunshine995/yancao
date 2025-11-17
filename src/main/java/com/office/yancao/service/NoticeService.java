@@ -4,107 +4,90 @@ import com.office.yancao.dto.NoticeDTO;
 import com.office.yancao.dto.NoticeRespDto;
 import com.office.yancao.dto.UnreadUserDTO;
 import com.office.yancao.entity.*;
-import com.office.yancao.mapper.FaultImageMapper;
 import com.office.yancao.mapper.NoticeMapper;
-import com.office.yancao.mapper.UserDepartmentMapper;
+import com.office.yancao.mapper.UserMapper;
+import com.office.yancao.mapper.WorkGroupMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class NoticeService {
-
-    @Value("${file.upload-path}")
-    private String uploadPath;
-
-    @Value("${file.base-url}")
-    private String baseUrl;
 
     @Autowired
     private NoticeMapper noticeMapper;
 
     @Autowired
-    private UserDepartmentMapper userDepartmentMapper;
+    private UserMapper userMapper;
 
     @Autowired
-    private FaultImageMapper faultImageMapper;
+    private WorkGroupMapper workGroupMapper;
 
+
+    @Transactional
     public void publishNotice(NoticeDTO dto) throws IOException {
-        Date date = new Date();
         Notice notice = new Notice();
-        notice.setTitle(dto.getTitle());
         notice.setContent(dto.getContent());
-        notice.setType(dto.getType());
         notice.setCreatedBy(dto.getUsername());
-        notice.setCreatedAt(date);
-        notice.setIsDeleted(false);
-        List<String> images = dto.getImages();
-        String imageStr = null;
-
-        if (images != null && !images.isEmpty()) {
-            imageStr = String.join(",", images);
-        }
-
-        notice.setImages(imageStr);
+        notice.setTitle(dto.getTitle());
+        notice.setType(dto.getType());
+        // 处理可能为空的图片数组
+        String images = (dto.getImages() != null && !dto.getImages().isEmpty())
+                ? String.join(",", dto.getImages())
+                : "";
+        String files = (dto.getFilesUrl() != null && !dto.getFilesUrl().isEmpty())
+                ? String.join(",", dto.getFilesUrl())
+                : "";
+        String originFiles = (dto.getOriginalFileNames() != null && !dto.getOriginalFileNames().isEmpty())
+                ? String.join(",", dto.getOriginalFileNames())
+                : "";
+        String videos = (dto.getVideoUrls() != null && !dto.getVideoUrls().isEmpty())
+                ? String.join(",", dto.getVideoUrls())
+                : "";
+        notice.setFilesUrl(files);
+        notice.setFilesName(originFiles);
+        notice.setVideoUrl(videos);
+        notice.setImages(images);
         noticeMapper.insertNotice(notice);
-
-        System.out.println(dto.getImages());
-
-
-
-        NoticeReceiver noticeReceiver = new NoticeReceiver();
-        noticeReceiver.setNoticeId(notice.getId());
-        noticeReceiver.setNoticeTime(date);
-        noticeReceiver.setIsRead(0);
-        noticeReceiver.setUserId(dto.getUserId());
-        // noticeMapper.insertReceiver(noticeReceiver);
-
-        Set<Long> targetUserIds = new HashSet<>();
-
-        Set<Long> result = new HashSet<>();
-
-        if ("ALL".equals(dto.getType())) {
-            GroupUser groupUser = userDepartmentMapper.selectDepartmentId(dto.getUserId());
-            collectChildIds(groupUser.getGroupId(), result);
-            List<Long> userIdsByDeptIds = userDepartmentMapper.getUserIdsByDeptIds(result);
-            // List<User> users = noticeMapper.listUsers();
-            targetUserIds.addAll(userIdsByDeptIds);
-        }
-        else if ("DEPT".equals(dto.getType()) && dto.getSelectedDeptIds() != null) {
-            for (Long deptId : dto.getSelectedDeptIds()) {
-                List<GroupUser> groupUsers = noticeMapper.getUsersByDeptId(deptId);
-                targetUserIds.addAll(groupUsers.stream().map(GroupUser::getUserId).collect(Collectors.toList()));
+        List<Long> usersList = new ArrayList<>();
+        if (dto.getType().equals("ALL")){
+            Long userId = dto.getUserId();
+            String userClass = userMapper.getUserClassById(userId);
+            usersList = userMapper.getUserByClass(userClass);
+        }else if (dto.getType().equals("WORK_GROUP")){
+            for (String classes : dto.getRangeIds()){
+                usersList.addAll(userMapper.getUserByClass(classes));
             }
-            noticeMapper.insertReceiver(noticeReceiver);
+        }else if (dto.getType().equals("PARTY_BRANCH")){
+            for (String id : dto.getRangeIds()){
+                if (id.equals("3")){
+                    usersList.addAll(userMapper.getUserByParty("第一党支部", "甲小组"));
+                }else if (id.equals("4")){
+                    usersList.addAll(userMapper.getUserByParty("第一党支部", "白小组"));
+                }else if (id.equals("5")){
+                    usersList.addAll(userMapper.getUserByParty("第二党支部", "乙小组"));
+                }else{
+                    usersList.addAll(userMapper.getUserByParty("第二党支部", "白小组"));
+                }
+            }
+        }else{
+            // 根据用户ID和小组名字
+            for (String GroupId : dto.getRangeIds()){
+                usersList.addAll(workGroupMapper.getUsersById(Long.valueOf(GroupId), dto.getUserId()));
+            }
         }
-        else if ("SELECTED".equals(dto.getType()) && dto.getSelectedUserIds() != null) {
-            targetUserIds.addAll(dto.getSelectedUserIds());
+        for (Long userId : usersList){
+            NoticeReceiver noticeReceiver = new NoticeReceiver();
+            noticeReceiver.setNoticeId(notice.getId());
+            noticeReceiver.setUserId(userId);
             noticeMapper.insertReceiver(noticeReceiver);
-        }
-
-        if (!targetUserIds.isEmpty()) {
-            List<NoticeReceiver> receivers = targetUserIds.stream()
-                    .distinct()
-                    .map(userId -> {
-                        NoticeReceiver r = new NoticeReceiver();
-                        r.setNoticeId(notice.getId());
-                        r.setUserId(userId);
-                        r.setIsRead(0);
-                        r.setNoticeTime(date);
-                        return r;
-                    }).collect(Collectors.toList());
-            noticeMapper.insertReceivers(receivers);
         }
     }
 
-    public List<Department> listDepartments(long id) {
-        GroupUser groupUser = userDepartmentMapper.selectDepartmentId(id);
-        return userDepartmentMapper.getDirectChildren(groupUser.getGroupId());
-    }
+
 
 
     public List<NoticeRespDto> listNoticesForUser(Long userId) {
@@ -120,10 +103,28 @@ public class NoticeService {
     public Notice getNoticeDetail(Long noticeId) {
         Notice noticeDetail = noticeMapper.getNoticeDetail(noticeId);
         String imageStr = noticeDetail.getImages();
+        String filesStr = noticeDetail.getFilesUrl();
+        String fileOrigin = noticeDetail.getFilesName();
+        String video = noticeDetail.getVideoUrl();
         List<String> images = (imageStr == null || imageStr.isEmpty())
                 ? Collections.emptyList()
                 : Arrays.asList(imageStr.split(","));
+
+        List<String> files = (filesStr == null || filesStr.isEmpty())
+                ? Collections.emptyList()
+                : Arrays.asList(filesStr.split(","));
+
+        List<String> origin = (fileOrigin == null || fileOrigin.isEmpty())
+                ? Collections.emptyList()
+                : Arrays.asList(fileOrigin.split(","));
+
+        List<String> videos = (video == null || video.isEmpty())
+                ? Collections.emptyList()
+                : Arrays.asList(video.split(","));
         noticeDetail.setImagesUrl(images);
+        noticeDetail.setFileUrls(files);
+        noticeDetail.setFileOriginUrls(origin);
+        noticeDetail.setVideoUrls(videos);
         return noticeDetail;
     }
 
@@ -144,19 +145,10 @@ public class NoticeService {
         return result;
     }
 
-    private void collectChildIds(Long deptId, Set<Long> result) {
-        result.add(deptId); // 先把自己加进去
 
-        // 查询直接子部门
-        List<Long> children = userDepartmentMapper.getDirectChildDeptIds(deptId);
-        for (Long childId : children) {
-            collectChildIds(childId, result); // 递归
-        }
-    }
 
     public List<Article> listPromotion() {
         List<Article> res = noticeMapper.listPromotion();
-        // return noticeMapper.listNoticesForUser(userId, startTime, endTime);
         return res;
     }
 
@@ -179,7 +171,6 @@ public class NoticeService {
 
     public List<Article> getArticleBanner() {
         List<Article> res = noticeMapper.getArticleBanner();
-        // return noticeMapper.listNoticesForUser(userId, startTime, endTime);
         return res;
     }
 

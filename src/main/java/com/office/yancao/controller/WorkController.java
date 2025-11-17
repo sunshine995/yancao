@@ -32,7 +32,7 @@ public class WorkController {
      * 根据ID查询工单
      */
     @GetMapping("/today-work-orders")
-    public Result getTodayWorkOrders(@RequestParam("id") Integer id) {
+    public Result getTodayWorkOrders(@RequestParam("id") Long id) {
         // 参数校验
         if (id == null || id <= 0) {
             return Result.fail(400, "用户ID不能为空");

@@ -31,7 +31,7 @@ spring:
 
 
 mybatis:
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.office.yancao.entity
   configuration:
     map-underscore-to-camel-case: true   # 开启驼峰命名
@@ -45,3 +45,10 @@ file:
   upload-path: E:/yancao/
   base-url: http://localhost:8081/images/
   max-size: 10MB
+
+# PageHelper 配置
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
