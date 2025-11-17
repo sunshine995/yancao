@@ -2,6 +2,8 @@ package com.office.yancao.entity;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class User {
     private Long id;
@@ -23,6 +25,12 @@ public class User {
     private String party;
     //党小组名称
     private String member;
+
+    //辅助岗位
+    private String supportPosition;
+
+    // 生日
+    private Date birthday;
 
 
 }

@@ -4,13 +4,23 @@
 
 
     <!--  根据用户ID查询用户  -->
-    <select id="getUsersById" resultType="com.office.yancao.entity.User"> SELECT * FROM user_info WHERE id = #{userId} </select>
+    <select id="getUsersById" resultType="com.office.yancao.entity.User">
+        SELECT * FROM user_info WHERE id = #{userId}
+    </select>
     <!--  根据用户名查询用户  -->
-    <select id="getUserByUsername" resultType="com.office.yancao.entity.User"> SELECT * FROM user_info WHERE username = #{username} </select>
+    <select id="getUserByUsername" resultType="com.office.yancao.entity.User">
+        SELECT * FROM user_info WHERE username = #{username}
+    </select>
     <!--  插入用户信息  -->
-    <insert id="insertUser" parameterType="com.office.yancao.entity.User" useGeneratedKeys="true" keyProperty="id"> INSERT INTO user_info ( username, password, phone, position, role, classes, section, party, member, department ) VALUES ( #{username}, #{password}, #{phone}, #{position}, #{role}, #{classes}, #{section}, #{party}, #{member}, #{department} ) </insert>
+    <insert id="insertUser" parameterType="com.office.yancao.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_info
+    (username, password, phone, position, role, classes, section, party, member, department )
+    VALUES ( #{username}, #{password}, #{phone}, #{position}, #{role}, #{classes}, #{section}, #{party}, #{member}, #{department} ) </insert>
     <!--  插入用户部门关联关系  -->
-    <insert id="insertUserDepartment"> INSERT INTO user_department ( user_id, department_id ) VALUES ( #{userId}, #{departmentId} ) </insert>
+    <insert id="insertUserDepartment">
+         INSERT INTO user_department ( user_id, department_id )
+         VALUES ( #{userId}, #{departmentId} )
+     </insert>
     <!--  根据用户ID查询用户所在班级  -->
     <select id="getUserClassById" resultType="java.lang.String">
         SELECT classes FROM user_info WHERE id = #{userId}
@@ -20,6 +30,36 @@
         SELECT id, username, phone, position, role
         FROM user_info
         WHERE role = 'USER'
+    </select>
+
+    <select id="getUserByClass" resultType="java.lang.Long">
+        SELECT id
+        FROM user_info
+        WHERE classes = #{classes}
+    </select>
+
+    <select id="getUserByParty" resultType="java.lang.Long">
+        SELECT id
+        FROM user_info
+        WHERE member = #{member}
+    </select>
+
+    <select id="selectUserList" parameterType="com.office.yancao.dto.admin.UserQuery" resultType="com.office.yancao.entity.User">
+        SELECT
+         *
+        FROM user_info
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+<!--            <if test="position != null and position != ''">-->
+<!--                AND position = #{position}-->
+<!--            </if>-->
+
+            <if test="classes != null and classes != '' and classes != 'all'">
+                AND classes = #{classes}
+            </if>
+        </where>
     </select>
 
 </mapper>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.DailyShiftRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.DailyShiftRecord">
+        <id column="id" property="id"/>
+        <result column="record_date" property="recordDate"/>
+        <result column="shift" property="classes"/>
+        <result column="production_box" property="productionBox"/>
+        <result column="production_board" property="productionBoard"/>
+        <result column="surplus_box" property="surplusBox"/>
+        <result column="surplus_board" property="surplusBoard"/>
+        <result column="yesterday_surplus_box" property="yesterdaySurplusBox"/>
+        <result column="yesterday_surplus_board" property="yesterdaySurplusBoard"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_id" property="createdId"/>
+
+    </resultMap>
+
+    <!-- 插入记录 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO daily_shift_record (
+            record_date,
+            classes,
+            production_box,
+            production_board,
+            surplus_box,
+            surplus_board,
+            yesterday_surplus_box,
+            yesterday_surplus_board,
+            created_id, created_time
+        ) VALUES (
+                     #{recordDate},
+                     #{classes},
+                     #{productionBox},
+                     #{productionBoard},
+                     #{surplusBox},
+                     #{surplusBoard},
+                     #{yesterdaySurplusBox},
+                     #{yesterdaySurplusBoard},
+                     #{createdId}, NOW()
+                 )
+    </insert>
+
+    <!-- 根据日期查询 -->
+    <select id="selectLatestBefore" resultMap="BaseResultMap">
+        SELECT
+           *
+        FROM daily_shift_record
+        WHERE record_date &lt;= #{beforeDate}
+        ORDER BY record_date DESC
+            LIMIT 1
+    </select>
+
+    <select id="selectTargetDate" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM daily_shift_record
+        WHERE record_date = #{targetDate}
+        ORDER BY record_date DESC
+            LIMIT 1
+    </select>
+
+    <!-- 查询某日所有班组记录（用于导出） -->
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT * FROM daily_shift_record
+        WHERE record_date = #{date}
+        ORDER BY FIELD(classes, '甲班', '乙班')
+    </select>
+
+
+</mapper>

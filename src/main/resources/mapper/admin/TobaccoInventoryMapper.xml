@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.admin.TobaccoInventoryMapper">
+
+    <resultMap id="TobaccoInventoryResultMap" type="com.office.yancao.entity.admin.TobaccoInventory">
+        <id column="id" property="id" />
+        <result column="date" property="date" />
+        <result column="shift" property="shift" />
+        <result column="incoming_large" property="incomingLarge" />
+        <result column="incoming_small" property="incomingSmall" />
+        <result column="dosing_large" property="dosingLarge" />
+        <result column="dosing_small" property="dosingSmall" />
+        <result column="leftover_returned" property="leftoverReturned" />
+        <result column="leftover_large" property="leftoverLarge" />
+        <result column="leftover_small" property="leftoverSmall" />
+        <result column="shell_large_pulled" property="shellLargePulled" />
+        <result column="shell_small_pulled" property="shellSmallPulled" />
+        <result column="shell_balance_large" property="shellBalanceLarge" />
+        <result column="shell_balance_small" property="shellBalanceSmall" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 查询最近二十天的详细数据 -->
+    <select id="selectRecentTwentyDaysData" resultType="com.office.yancao.entity.admin.TobaccoInventory">
+        SELECT
+            *
+        FROM tobacco_inventory
+        WHERE date >= CURDATE() - INTERVAL 30 DAY
+        ORDER BY date desc,
+            CASE
+            WHEN shift = '白班' THEN 3
+            WHEN shift = '中班' THEN 2
+            WHEN shift = '晚班' THEN 1
+        END
+    </select>
+
+    <!-- 按日统计最近20天的汇总数据（合并大小箱） -->
+    <select id="selectDailySummaryRecentTwentyDays" resultType="com.office.yancao.entity.admin.TobaccoInventory">
+        SELECT
+            (SUM(incoming_large) * 30 + SUM(incoming_small) * 14) as totalIncoming,
+            (SUM(dosing_large) * 30 + SUM(dosing_small) * 14) as totalDosing,
+            (SUM(shell_large_pulled) + SUM(shell_small_pulled)) as totalShellPulled
+        FROM tobacco_inventory
+        WHERE date >= CURDATE() - INTERVAL 30 DAY
+    </select>
+
+<!--    插入一条数据 -->
+    <insert id="insert" parameterType="com.office.yancao.entity.admin.TobaccoInventory">
+        INSERT INTO tobacco_inventory (
+            date,
+            shift,
+            incoming_large,
+            incoming_small,
+            dosing_large,
+            dosing_small,
+            leftover_large,
+            leftover_small,
+            shell_large_pulled,
+            shell_small_pulled,
+            shell_balance_large,
+            shell_balance_small,
+            created_by,
+            updated_by
+        ) VALUES (
+                     #{date, jdbcType=DATE},
+                     #{shift},
+                     #{incomingLarge},
+                     #{incomingSmall},
+                     #{dosingLarge},
+                     #{dosingSmall},
+                     #{leftoverLarge},
+                     #{leftoverSmall},
+                     #{shellLargePulled},
+                     #{shellSmallPulled},
+                     #{shellBalanceLarge},
+                     #{shellBalanceSmall},
+                     #{createdBy},
+                     #{updatedBy}
+                 )
+    </insert>
+
+    <select id="selectByInventory" resultType="com.office.yancao.entity.admin.TobaccoInventory">
+        SELECT *
+        FROM tobacco_inventory
+        WHERE date  &lt;=  NOW()
+        ORDER BY
+        date DESC,
+        CASE
+        WHEN shift = '白班' THEN 1
+        WHEN shift = '中班' THEN 2
+        WHEN shift = '晚班' THEN 3
+        ELSE 0
+        END DESC
+        LIMIT 1;
+    </select>
+
+</mapper>

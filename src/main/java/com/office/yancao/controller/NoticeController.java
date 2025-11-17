@@ -10,7 +10,6 @@ import com.office.yancao.entity.*;
 import com.office.yancao.service.NoticeService;
 import com.office.yancao.untils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -28,15 +27,11 @@ public class NoticeController {
 
     @PostMapping("/publish")
     public Result<Void> publish(@RequestBody NoticeDTO dto) throws IOException {
-        System.out.println(dto.getImages().size());
+        //System.out.println(dto.getType());
         noticeService.publishNotice(dto);
         return Result.success();
     }
 
-    @GetMapping("/departments")
-    public Result<List<Department>> listDepartments(@RequestParam(value = "id") Long id) {
-        return Result.success(noticeService.listDepartments(id));
-    }
 
     @GetMapping("/list")
     public Result<List<NoticeRespDto>> listNotices(@RequestParam(value = "userId") Long userId) {

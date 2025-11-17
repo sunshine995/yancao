@@ -3,8 +3,8 @@
 <mapper namespace="com.office.yancao.mapper.NoticeMapper">
 
     <insert id="insertNotice" parameterType="com.office.yancao.entity.Notice" useGeneratedKeys="true" keyProperty = "id">
-        INSERT INTO notice (title, content, type, created_by, created_at, images)
-        VALUES (#{title}, #{content}, #{type}, #{createdBy}, NOW(), #{images})
+        INSERT INTO notice (title, content, type, created_by, created_at, images, files_url, files_name, video_url)
+        VALUES (#{title}, #{content}, #{type}, #{createdBy}, NOW(), #{images}, #{filesUrl}, #{filesName}, #{videoUrl})
     </insert>
 
     <insert id="insertReceivers">
@@ -17,7 +17,7 @@
 
     <insert id="insertReceiver">
         INSERT INTO notice_receiver (notice_id, user_id, notice_time)
-        VALUES (#{noticeId}, #{userId}, #{noticeTime})
+        VALUES (#{noticeId}, #{userId}, NOW())
     </insert>
 
     <select id="getUsersByDeptId" resultType="com.office.yancao.entity.GroupUser">

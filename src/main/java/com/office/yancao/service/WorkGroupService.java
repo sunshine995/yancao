@@ -10,6 +10,7 @@ import com.office.yancao.mapper.UserMapper;
 import com.office.yancao.mapper.WorkGroupMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,16 @@ public class WorkGroupService {
     @Autowired
     private UserMapper userMapper;
 
+    @Transactional
     public WorkGroup create(WorkGroup group) {
         group.setType("DYNAMIC");
         group.setStatus(true);
         workGroupMapper.insert(group);
+        GroupUser groupUser = new GroupUser();
+        groupUser.setGroupId(group.getId());
+        groupUser.setUserId(group.getCreatorId());
+        groupUser.setOperatorId(group.getCreatorId());
+        workGroupMapper.insertUserGroup(groupUser);
         return group; // 此时 id 已由数据库生成并回填
     }
 
@@ -36,6 +43,7 @@ public class WorkGroupService {
     }
 
     public boolean deleteGroupById(Long id) {
+        workGroupMapper.deleteByGroupId(id);
         return workGroupMapper.deleteById(id) > 0;
     }
 
