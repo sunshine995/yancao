@@ -30,13 +30,13 @@ public class TobaccoRecordController {
     public ResponseEntity<Result<List<TobaccoRecordDTO>>> getAllExitTobaccos(
             @RequestParam String status, // 固定为exit
             @RequestParam(required = false) String searchKeyword) {
-
+        
         // 校验状态必须为exit
         if (!"exit".equals(status)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Result.fail(400, "状态参数必须为exit"));
         }
-
+        
         // 调用服务层查询所有工单的退出烟叶
         List<TobaccoRecordDTO> result = tobaccoRecordService.getAllExitTobaccos(searchKeyword);
         return ResponseEntity.ok(Result.success(result));
@@ -49,7 +49,7 @@ public class TobaccoRecordController {
     @GetMapping("/api/tobaccos/added/{workOrderId}")
     public ResponseEntity<Result<List<TobaccoRecordDTO>>> getAddedTobaccosByWorkOrderId(
             @PathVariable Long workOrderId) {
-
+        
         try {
             // 调用服务层根据工单ID查询已加入的烟叶
             List<TobaccoRecordDTO> result = tobaccoRecordService.getAddedTobaccosByWorkOrderId(workOrderId);

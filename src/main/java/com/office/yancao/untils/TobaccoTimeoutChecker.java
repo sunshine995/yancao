@@ -17,7 +17,7 @@ public class TobaccoTimeoutChecker {
     // 数据库配置
     private static final String DB_URL = "jdbc:mysql://localhost:3306/yancao?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "12345";
+    private static final String DB_PASSWORD = "zjz1012.";
     private static final String TABLE_NAME = "tobacco_record"; // 假设表名为tobacco_record
 
     public static void main(String[] args) {
@@ -49,10 +49,10 @@ public class TobaccoTimeoutChecker {
             // 2. 查询符合条件的记录：add_work_order_id为空，exit_work_order_id不为空，且is_timeout为0（未超时）
             String querySql = String.format(
                     "SELECT id, operate_time " +
-                            "FROM %s " +
-                            "WHERE add_work_order_id IS NULL " +
-                            "  AND exit_work_order_id IS NOT NULL " +
-                            "  AND is_timeout = 0", TABLE_NAME);
+                    "FROM %s " +
+                    "WHERE add_work_order_id IS NULL " +
+                    "  AND exit_work_order_id IS NOT NULL " +
+                    "  AND is_timeout = 0", TABLE_NAME);
             queryStmt = conn.prepareStatement(querySql);
             rs = queryStmt.executeQuery();
 
@@ -71,8 +71,8 @@ public class TobaccoTimeoutChecker {
                 if (daysDiff > 10) {
                     String updateSql = String.format(
                             "UPDATE %s " +
-                                    "SET is_timeout = 1 " +
-                                    "WHERE id = ?", TABLE_NAME);
+                            "SET is_timeout = 1 " +
+                            "WHERE id = ?", TABLE_NAME);
                     updateStmt = conn.prepareStatement(updateSql);
                     updateStmt.setLong(1, recordId);
                     updateStmt.executeUpdate();

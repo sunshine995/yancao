@@ -1,6 +1,7 @@
 package com.office.yancao.entity;
 
 import lombok.Data;
+import java.time.LocalDate;
 
 import java.util.Date;
 
@@ -11,6 +12,8 @@ public class User {
     private String username;
     private String password;
     private String role;
+    private LocalDate birthday; // 生日
+    private String support_position; // 辅助岗位
     // 部门
     private String department;
     // 班级
