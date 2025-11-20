@@ -40,4 +40,8 @@ public interface UserMapper {
 
     // admin方法，根据用户传入信息查询所有用户信息
     List<User> selectUserList(UserQuery query);
+
+    int updateUserInfo(User user);
+
+    // 更新用户信息
 }

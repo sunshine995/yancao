@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.DottleBatchMapper">
+
+    <select id="selectBatchList" resultType="com.office.yancao.entity.DottleBatch">
+        SELECT
+        tb.*,
+        tbr.grade_name AS brandName
+        FROM dottle_batch tb
+        LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.batch_number
+        <where>
+            <if test="brandId != null and brandId != ''">
+                AND tb.brand_id = #{brandId}
+            </if>
+<!--            <if test="query.status != null">-->
+<!--                AND tb.status = #{query.status}-->
+<!--            </if>-->
+        </where>
+        ORDER BY tb.days_remaining
+    </select>
+
+    <select id="selectExpiringBatches" resultType="com.office.yancao.entity.DottleBatch">
+        SELECT
+            tb.*,
+            tbr.brand_name
+        FROM dottle_batch tb
+                 LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.id
+        WHERE tb.days_remaining &lt;= #{days}
+          AND tb.remaining_bags > 0
+          AND tbr.status = 1
+        ORDER BY tb.days_remaining ASC, tb.receive_date ASC
+    </select>
+
+    <update id="updateBatchRemaining">
+        UPDATE dottle_batch
+        SET remaining_bags = #{remainingBags},
+            remaining_weight = #{remainingWeight},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insert" parameterType="com.office.yancao.entity.DottleBatch" useGeneratedKeys="true" keyProperty = "id">
+        INSERT INTO dottle_batch (
+            batch_id,brand_id,receive_date,expire_date,total_bags,total_weight,remaining_bags,
+            remaining_weight,status,days_remaining,shift_type,operator,create_time,update_time
+        ) VALUES (
+            #{batchId},#{brandId},#{receiveDate},#{expireDate},#{totalBags},#{totalWeight},
+                  #{remainingBags},#{remainingWeight},#{status},#{daysRemaining},
+               #{shiftType},#{operator},#{createTime},#{updateTime} )
+    </insert>
+
+</mapper>

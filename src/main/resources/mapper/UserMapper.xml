@@ -62,4 +62,23 @@
         </where>
     </select>
 
+    <update id="updateUserInfo" parameterType="com.office.yancao.entity.User">
+        UPDATE user_info
+        <set>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="department != null and department != ''">department = #{department},</if>
+            <if test="classes != null and classes != ''">classes = #{classes},</if>
+            <if test="line != null and line != ''">line = #{line},</if>
+            <if test="section != null and section != ''">section = #{section},</if>
+            <if test="position != null and position != ''">position = #{position},</if>
+            <if test="party != null and party != ''">party = #{party},</if>
+            <if test="member != null and member != ''">member = #{member},</if>
+            <if test="supportPosition != null and supportPosition != ''">support_position = #{supportPosition},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+
+        </set>
+        WHERE id = #{id}
+    </update>
+
 </mapper>

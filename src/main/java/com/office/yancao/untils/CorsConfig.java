@@ -12,7 +12,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")        // 拦截所有 /api/ 开头的请求
                 .allowedOriginPatterns("http://localhost:5173",
                         "http://localhost:8085",
-                        "http://192.168.215.185",   //
+                        "http://192.168.175.185",   //
                         "http://127.0.0.1") // 允许前端域名
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
