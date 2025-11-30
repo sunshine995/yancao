@@ -17,7 +17,7 @@ public class TobaccoTimeoutChecker {
     // 数据库配置
     private static final String DB_URL = "jdbc:mysql://localhost:3306/yancao?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "zjz1012.";
+    private static final String DB_PASSWORD = "12345";
     private static final String TABLE_NAME = "tobacco_record"; // 假设表名为tobacco_record
 
     public static void main(String[] args) {

@@ -67,4 +67,16 @@
         </where>
     </select>
 
+    <select id="queryRecentWeekOperations" resultType="com.office.yancao.entity.DottleOperation">
+        SELECT
+            op.*,
+            tb.batch_id as batch_id_str,
+            tbr.grade_name as brandName
+        FROM dottle_operation op
+                 LEFT JOIN dottle_batch tb ON op.batch_id = tb.id
+                 LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.batch_number
+        WHERE op.operation_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY op.operation_time DESC
+    </select>
+
 </mapper>

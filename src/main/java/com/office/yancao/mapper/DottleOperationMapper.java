@@ -23,4 +23,6 @@ public interface DottleOperationMapper {
     List<DottleOperation> selectSummary(@Param("operationType") Integer operationType,
                                         @Param("startTime") LocalDateTime startTime,
                                         @Param("endTime") LocalDateTime endTime);
+
+    List<DottleOperation> queryRecentWeekOperations();
 }

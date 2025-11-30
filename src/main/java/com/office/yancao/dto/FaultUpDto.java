@@ -12,4 +12,6 @@ public class FaultUpDto {
     private String status;
     private String repairNotes;
     private List<String> images;
+    private List<String> processImageUrls;
+    private List<String> resultImageUrls;
 }

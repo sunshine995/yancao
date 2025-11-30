@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.admin.ShiftScheduleMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.admin.ShiftSchedule">
+        <id column="id" property="id"/>
+        <result column="schedule_date" property="scheduleDate"/>
+        <result column="team" property="team"/>
+        <result column="shift_type" property="shiftType"/>
+        <result column="is_manual" property="manual"/>
+    </resultMap>
+
+    <!-- 查询某天排班 -->
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date = #{date}
+        ORDER BY team
+    </select>
+
+    <!-- 是否存在手动排班 -->
+    <select id="existsManualRecord" resultType="boolean">
+        SELECT EXISTS(
+        SELECT 1 FROM shift_schedule
+        WHERE schedule_date = #{date} AND is_manual = 1
+        )
+    </select>
+
+    <!-- 手动设置：先删后插（或 ON DUPLICATE KEY UPDATE） -->
+    <insert id="upsertManual">
+        INSERT INTO shift_schedule (schedule_date, team, shift_type, is_manual)
+        VALUES (#{record.scheduleDate}, #{record.team}, #{record.shiftType}, 1)
+        ON DUPLICATE KEY UPDATE
+        shift_type = VALUES(shift_type),
+        is_manual = 1
+    </insert>
+
+    <!-- 批量插入自动排班（忽略已存在的） -->
+    <insert id="batchInsertAuto">
+        INSERT IGNORE INTO shift_schedule (schedule_date, team, shift_type, is_manual)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.scheduleDate}, #{item.team}, #{item.shiftType}, 0)
+        </foreach>
+    </insert>
+
+    <!-- XML -->
+    <select id="selectByDateRange" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY schedule_date, team
+    </select>
+
+    <!-- 查询从指定日期开始的自动排班 -->
+    <select id="selectAutoFromDate" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date >= #{startDate} AND is_manual = 0
+        ORDER BY schedule_date, team
+    </select>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById">
+        DELETE FROM shift_schedule WHERE id = #{id}
+    </delete>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO shift_schedule (schedule_date, team, shift_type, is_manual)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.scheduleDate}, #{item.team}, #{item.shiftType}, #{item.manual})
+        </foreach>
+    </insert>
+
+    <!-- 按日期范围查询自动排班 -->
+    <select id="selectAutoByDateRange" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY schedule_date, team
+    </select>
+
+    <select id="selectByDateAndTeam" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date = #{date}
+          AND team = #{team}
+    </select>
+
+</mapper>

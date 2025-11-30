@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.admin.SixsTaskTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.admin.SixsTaskTemplate">
+        <id column="id" property="id" />
+        <result column="template_name" property="templateName" />
+        <result column="group_name" property="groupName" />
+        <result column="shift" property="shift" />
+        <result column="weekday" property="weekday" />
+        <result column="task_content" property="taskContent" />
+        <result column="task_standard" property="taskStandard" />
+        <result column="required_images" property="requiredImages" />
+        <result column="is_active" property="isActive" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, template_name, group_name, shift, weekday, task_content, task_standard,
+        required_images, is_active, created_at, updated_at
+    </sql>
+
+
+    <!-- 新增模板 -->
+    <insert id="insert" parameterType="com.office.yancao.entity.admin.SixsTaskTemplate"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sixs_task_templates (
+            template_name, group_name, shift, weekday, task_content,
+            task_standard, required_images, is_active, created_at, updated_at
+        ) VALUES (
+                     #{templateName}, #{groupName}, #{shift}, #{weekday}, #{taskContent},
+                     #{taskStandard}, #{requiredImages}, #{isActive}, NOW(), NOW()
+                 )
+    </insert>
+
+    <!-- 更新模板 -->
+    <update id="update" parameterType="com.office.yancao.entity.admin.SixsTaskTemplate">
+        UPDATE sixs_task_templates
+        SET template_name = #{templateName},
+            group_name = #{groupName},
+            shift = #{shift},
+            weekday = #{weekday},
+            task_content = #{taskContent},
+            task_standard = #{taskStandard},
+            required_images = #{requiredImages},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据分组和班次查询 -->
+    <select id="selectByGroupAndShift" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        WHERE group_name = #{groupName}
+        AND shift = #{shift}
+        AND is_active = 1
+        ORDER BY weekday
+    </select>
+
+    <!-- 删除模板 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM sixs_task_templates
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据星期几查询活跃模板 -->
+    <select id="selectActiveByWeekday" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        WHERE weekday = #{weekday}
+        AND is_active = 1
+        ORDER BY group_name, shift
+    </select>
+
+    <!-- 根据分组、班次和星期几查询 -->
+    <select id="selectByGroupShiftWeekday" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        WHERE group_name = #{groupName}
+        AND shift = #{shift}
+        AND weekday = #{weekday}
+        AND is_active = 1
+        LIMIT 1
+    </select>
+
+    <!-- 更新模板状态 -->
+    <update id="updateStatus">
+        UPDATE sixs_task_templates
+        SET is_active = #{isActive},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="findAllActive" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        WHERE is_active = 1
+        ORDER BY group_name, shift, weekday
+    </select>
+
+    <!-- 通用条件分页查询 -->
+    <select id="findByCondition" parameterType="com.office.yancao.dto.admin.SixsReqDTO"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        <where>
+            <if test="condition.groupName != null and condition.groupName != ''">
+                AND group_name = #{condition.groupName}
+            </if>
+            <if test="condition.shift != null and condition.shift != ''">
+                AND shift = #{condition.shift}
+            </if>
+            <if test="condition.weekday != null">
+                AND weekday = #{condition.weekday}
+            </if>
+        </where>
+        ORDER BY group_name, shift, weekday
+    </select>
+
+</mapper>

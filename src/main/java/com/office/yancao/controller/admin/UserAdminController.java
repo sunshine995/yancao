@@ -46,7 +46,6 @@ public class UserAdminController {
         }
         String userId = jwtUtil.getUserIdFromToken(token); // 调用工具类方法
         User usersById = userMapper.getUsersById(Long.valueOf(userId));
-        System.out.println(usersById.getId());
         if (!usersById.getClasses().equals("管理组") && Long.valueOf(userId) != user.getId()){
             return Result.fail("没有权限修改别人信息");
         }

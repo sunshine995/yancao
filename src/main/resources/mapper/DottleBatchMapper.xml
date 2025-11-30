@@ -12,6 +12,8 @@
             <if test="brandId != null and brandId != ''">
                 AND tb.brand_id = #{brandId}
             </if>
+            AND tb.days_remaining >= 0
+            AND tb.remaining_bags > 0
 <!--            <if test="query.status != null">-->
 <!--                AND tb.status = #{query.status}-->
 <!--            </if>-->
@@ -19,16 +21,16 @@
         ORDER BY tb.days_remaining
     </select>
 
-    <select id="selectExpiringBatches" resultType="com.office.yancao.entity.DottleBatch">
+    <select id="queryExpireBatch" resultType="com.office.yancao.entity.DottleBatch">
         SELECT
             tb.*,
-            tbr.brand_name
+            tbr.grade_name AS brandName
         FROM dottle_batch tb
-                 LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.id
-        WHERE tb.days_remaining &lt;= #{days}
+                 LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.batch_number
+        WHERE tb.expire_date &lt; NOW()
           AND tb.remaining_bags > 0
-          AND tbr.status = 1
-        ORDER BY tb.days_remaining ASC, tb.receive_date ASC
+          AND tb.status = 'expired'
+        ORDER BY tb.expire_date ASC
     </select>
 
     <update id="updateBatchRemaining">
@@ -48,5 +50,54 @@
                   #{remainingBags},#{remainingWeight},#{status},#{daysRemaining},
                #{shiftType},#{operator},#{createTime},#{updateTime} )
     </insert>
+
+    <!-- 查询批次列表 -->
+    <select id="queryAdminBatch" parameterType="map" resultType="com.office.yancao.entity.DottleBatch">
+        SELECT
+        *,
+        tbr.grade_name AS brandName
+        FROM dottle_batch
+        LEFT JOIN tobacco_grade_table tbr ON brand_id = tbr.batch_number
+        <where>
+            <if test="brandId != null and brandId != ''">
+                AND brand_id = #{brandId}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        <choose>
+            <when test="sortField != null and sortField != ''">
+                ORDER BY
+                <choose>
+                    <when test="sortField == 'receive_date'">receive_date</when>
+                    <when test="sortField == 'days_remaining'">
+                        DATEDIFF(expire_date, NOW())
+                    </when>
+                    <when test="sortField == 'remaining_bags'">remaining_bags</when>
+                    <when test="sortField == 'remaining_weight'">remaining_weight</when>
+                    <otherwise>create_time</otherwise>
+                </choose>
+                <choose>
+                    <when test="sortOrder == 'asc'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="updateStatusAndDaysRemaining">
+        UPDATE dottle_batch
+        SET
+        days_remaining = DATEDIFF(expire_date, CURDATE()),
+        status = CASE
+        WHEN DATEDIFF(expire_date, CURDATE()) &lt; 0 THEN 'expired'
+        WHEN DATEDIFF(expire_date, CURDATE()) &lt; 4 THEN 'warning'
+        ELSE 'normal'
+        END
+    </update>
 
 </mapper>

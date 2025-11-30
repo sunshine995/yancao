@@ -199,10 +199,9 @@ public class UserService {
             query.setClasses("all");
         }
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
-        System.out.println(query.getClasses());
         try {
             List<User> userList = userMapper.selectUserList(query);
-            System.out.println("【查询成功】结果数量: " + (userList == null ? "null" : userList.size()));
+//            System.out.println("【查询成功】结果数量: " + (userList == null ? "null" : userList.size()));
             return new PageInfo<>(userList);
         } catch (Exception e) {
             System.out.println("【❌ 查询失败！异常如下】");

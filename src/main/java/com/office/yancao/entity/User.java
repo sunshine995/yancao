@@ -33,7 +33,7 @@ public class User {
     private String supportPosition;
 
     // 生日
-    private Date birthday;
+    //private Date birthday;
 
 
 }
