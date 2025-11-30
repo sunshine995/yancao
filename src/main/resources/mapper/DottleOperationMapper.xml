@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.DottleOperationMapper">
+
+    <select id="selectOperationList" resultType="com.office.yancao.entity.DottleOperation">
+        SELECT
+        to.*,
+        tb.batch_id as batch_id_str,
+        tbr.brand_name
+        FROM tobacco_operation to
+        LEFT JOIN tobacco_batch tb ON to.batch_id = tb.id
+        LEFT JOIN tobacco_brand tbr ON tb.brand_id = tbr.id
+        <where>
+            <if test="batchId != null">
+                AND to.batch_id = #{batchId}
+            </if>
+            <if test="operationType != null">
+                AND to.operation_type = #{operationType}
+            </if>
+            <if test="startTime != null">
+                AND to.operation_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND to.operation_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY to.operation_time DESC
+    </select>
+
+    <select id="selectDailySummary" resultType="java.util.Map">
+        SELECT
+            operation_type,
+            shift_type,
+            SUM(bags_used) as total_bags,
+            SUM(weight_used) as total_weight
+        FROM tobacco_operation
+        WHERE DATE(operation_time) = #{date}
+        GROUP BY operation_type, shift_type
+    </select>
+
+    <insert id="insert" parameterType="com.office.yancao.entity.DottleOperation">
+        INSERT INTO dottle_operation (
+            batch_id,operation_type,bags_used,weight_used,shift_type,operator,operation_time,
+            remark,create_time
+        ) VALUES (
+                     #{batchId},#{operationType},#{bagsUsed},#{weightUsed},#{shiftType},#{operator},
+                     #{operationTime},#{remark},#{createTime} )
+    </insert>
+
+
+
+    <select id="selectSummary" resultType="com.office.yancao.entity.DottleOperation">
+        SELECT
+        op.*,
+        tb.batch_id as batch_id_str,
+        tbr.grade_name as brandName
+        FROM dottle_operation op
+        LEFT JOIN dottle_batch tb ON op.batch_id = tb.id
+        LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.batch_number
+        <where>
+            <if test="operationType != null">
+                AND op.operation_type = #{operationType}
+            </if>
+            <if test="startTime != null">
+                AND op.operation_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryRecentWeekOperations" resultType="com.office.yancao.entity.DottleOperation">
+        SELECT
+            op.*,
+            tb.batch_id as batch_id_str,
+            tbr.grade_name as brandName
+        FROM dottle_operation op
+                 LEFT JOIN dottle_batch tb ON op.batch_id = tb.id
+                 LEFT JOIN tobacco_grade_table tbr ON tb.brand_id = tbr.batch_number
+        WHERE op.operation_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY op.operation_time DESC
+    </select>
+
+</mapper>

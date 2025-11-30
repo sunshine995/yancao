@@ -27,10 +27,12 @@ public class User {
     //党小组名称
     private String member;
 
-    // getter方法用于适配update操作中的supportPosition参数
-    public String getSupportPosition() {
-        return this.support_position;
-    }
+    //辅助岗位
+    private String supportPosition;
+
+    // 生日
+    //private Date birthday;
+
 
     // setter方法用于适配update操作中的supportPosition参数
     public void setSupportPosition(String supportPosition) {

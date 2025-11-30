@@ -12,6 +12,7 @@ public class FaultReport {
     private String type; // electrical, mechanical
     private String description;
     private String status; // reported, arrived, repaired
+    private LocalDateTime queryTime;
     private LocalDateTime reportTime;
     private LocalDateTime arrivalTime;
     private LocalDateTime repairTime;

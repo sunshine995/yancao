@@ -72,9 +72,23 @@ public class FaultController {
      * 根据维修工类别获取报警列表
      */
     @GetMapping("/faultListByType")
-    public Result<List<FaultRespList>> faultList(@RequestParam String type, @RequestParam Long userId) {
-        System.out.println(type);
-        System.out.println(userId);
-        return Result.success(faultService.faultListByType(type, userId));
+    public Result<List<FaultRespList>> faultList(@RequestParam String type,
+                                                 @RequestParam String faultType,
+                                                 @RequestParam Long userId) {
+        return Result.success(faultService.faultListByType(type, faultType, userId));
+    }
+
+    /**
+     * 维修工到场
+     */
+    @PostMapping("/arrive")
+    public Result<Boolean> markAdminArrived(@RequestBody FaultUpDto faultUpDto) throws IOException {
+
+        boolean success = faultService.markAdminArrived(faultUpDto);
+        if (success) {
+            return Result.success(true); // ✅ 成功
+        } else {
+            return Result.fail("操作失败，可能报警不存在或状态已变更"); // ✅ 通用失败
+        }
     }
 }

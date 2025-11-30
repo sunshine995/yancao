@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.office.yancao.mapper.admin.SixsTaskInstanceMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.admin.SixsTaskInstance">
+        <id column="id" property="id" />
+        <result column="template_id" property="templateId" />
+        <result column="employee_id" property="employeeId" />
+        <result column="scheduled_date" property="scheduledDate" />
+        <result column="planned_completion_time" property="plannedCompletionTime" />
+        <result column="status" property="status" />
+        <result column="submitted_images" property="submittedImages" />
+        <result column="completion_notes" property="completionNotes" />
+        <result column="submitted_at" property="submittedAt" />
+        <result column="spot_check_status" property="spotCheckStatus" />
+        <result column="spot_checker_id" property="spotCheckerId" />
+        <result column="spot_check_time" property="spotCheckTime" />
+        <result column="spot_check_result" property="spotCheckResult" />
+        <result column="spot_check_notes" property="spotCheckNotes" />
+        <result column="spot_check_images" property="spotCheckImages"/>
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, template_id, employee_id, scheduled_date, planned_completion_time, status,
+        submitted_images, completion_notes, submitted_at, spot_check_status, spot_checker_id,
+        spot_check_time, spot_check_result, spot_check_notes, spot_check_images,
+        created_at, updated_at
+    </sql>
+
+    <!-- 插入任务实例 -->
+    <insert id="insert" parameterType="com.office.yancao.entity.admin.SixsTaskInstance"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sixs_task_instances (
+            template_id, employee_id, scheduled_date, planned_completion_time, status,
+            spot_check_status, created_at, updated_at
+        ) VALUES (
+                     #{templateId}, #{employeeId}, #{scheduledDate}, #{plannedCompletionTime}, #{status},
+                     #{spotCheckStatus}, NOW(), NOW()
+                 )
+    </insert>
+
+    <!-- 批量插入任务实例 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO sixs_task_instances (
+        template_id, employee_id, scheduled_date, planned_completion_time, status,
+        spot_check_status, created_at, updated_at
+        ) VALUES
+        <foreach collection="instances" item="instance" separator=",">
+            (
+            #{instance.templateId}, #{instance.employeeId}, #{instance.scheduledDate},
+            #{instance.plannedCompletionTime}, #{instance.status}, #{instance.spotCheckStatus},
+            NOW(), NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据员工和日期查询任务实例 -->
+    <select id="findByEmployeeAndDate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_instances
+        WHERE employee_id = #{employeeId}
+        AND scheduled_date = #{scheduledDate}
+        ORDER BY planned_completion_time
+    </select>
+
+    <!-- 检查任务实例是否已存在 -->
+    <select id="countByTemplateAndEmployeeAndDate" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM sixs_task_instances
+        WHERE template_id = #{templateId}
+          AND employee_id = #{employeeId}
+          AND scheduled_date = #{scheduledDate}
+    </select>
+
+    <!-- 根据日期查询所有任务实例 -->
+    <select id="findByDate" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_instances
+        WHERE scheduled_date = #{scheduledDate}
+        ORDER BY employee_id, planned_completion_time
+    </select>
+
+</mapper>

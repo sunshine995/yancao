@@ -142,14 +142,15 @@ public class FaultService {
         return dto;
     }
 
-    public List<FaultRespList> faultListByType(String type, Long userId) {
+    public List<FaultRespList> faultListByType(String type, String faultType, Long userId) {
         List<FaultRespList> respLists = new ArrayList<>();
         List<FaultReport> faultReports = new ArrayList<>();
         if ("admin".equals(type)){
-            faultReports = faultReportMapper.selectByAdmin();
+            faultReports = faultReportMapper.selectByType(faultType);
         }else if ("user".equals(type)){
-            faultReports = faultReportMapper.selectByUserId(userId);
+            faultReports = faultReportMapper.selectByUserId(userId, faultType);
         }else {
+            System.out.println(type);
             faultReports = faultReportMapper.selectByType(type);
         }
         if (faultReports != null && !faultReports.isEmpty()){
@@ -186,4 +187,51 @@ public class FaultService {
         }
         return respLists;
     }
+
+    @Transactional
+    public boolean markAdminArrived(FaultUpDto faultUpDto) throws IOException{
+        Boolean bo;
+        if ("progress".equals(faultUpDto.getStatus())){
+            bo = faultReportMapper.updateToGet(faultUpDto.getFaultId(), faultUpDto.getStatus()) > 0;
+        }else {
+
+            FaultReport byId = faultReportMapper.findById(faultUpDto.getFaultId());
+            // 确保 arrivalTime 不为 null
+            if (byId.getQueryTime() == null) {
+                throw new IllegalArgumentException("到达现场时间不能为空");
+            }
+
+            // 计算持续时间（单位：分钟）
+            long durationMinutes = Duration.between(byId.getQueryTime(), LocalDateTime.now()).toMinutes();
+
+            // 更新状态 + 持续时间（假设你的 updateToRepaired 支持传入 duration）
+            bo = faultReportMapper.updateToRepaired(faultUpDto.getFaultId(), faultUpDto.getStatus(), durationMinutes, faultUpDto.getRepairNotes()) > 0;
+        }
+
+        // 2. 保存图片
+        List<String> images = faultUpDto.getProcessImageUrls();
+        if (images != null && !images.isEmpty()) {
+            for (String image : images) {
+                FaultImage faultImage = new FaultImage();
+                faultImage.setFaultId(faultUpDto.getFaultId());
+                faultImage.setImageUrl(image);
+                faultImage.setImageType("progress");
+                faultImageMapper.insert(faultImage);
+            }
+        }
+
+        List<String> list = faultUpDto.getResultImageUrls();
+        if (list != null && !list.isEmpty()) {
+            for (String image : list) {
+                FaultImage faultImage = new FaultImage();
+                faultImage.setFaultId(faultUpDto.getFaultId());
+                faultImage.setImageUrl(image);
+                faultImage.setImageType(faultUpDto.getStatus());
+                faultImageMapper.insert(faultImage);
+            }
+        }
+
+        return bo;
+    }
+
 }

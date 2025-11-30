@@ -24,7 +24,7 @@ public interface FaultReportMapper {
 
     List<FaultReport> selectByType(@Param("type") String type);
 
-    List<FaultReport> selectByAdmin();
+    List<FaultReport> selectByAdmin(@Param("type") String type);
 
-    List<FaultReport> selectByUserId(@Param("userId") Long userId);
+    List<FaultReport> selectByUserId(@Param("userId") Long userId, @Param("type") String type);
 }

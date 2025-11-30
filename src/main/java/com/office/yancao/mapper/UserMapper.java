@@ -9,6 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface UserMapper {
+
     User getUsersById(@Param("userId") Long userId);
     /**
      * 根据用户名查询用户（用于检查用户名是否已存在）
@@ -40,4 +41,10 @@ public interface UserMapper {
 
     // admin方法，根据用户传入信息查询所有用户信息
     List<User> selectUserList(UserQuery query);
+
+    int updateUserInfo(User user);
+
+    List<User> listUserByClass();
+
+    // 更新用户信息
 }

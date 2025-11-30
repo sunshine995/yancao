@@ -63,8 +63,8 @@
         UPDATE fault_reports
         SET
             repair_time = NOW(),
-            status = 'repaired',
-            duration_minutes = #{durationMinutes}
+            status = #{status},
+            duration_minutes = #{durationMinutes},
             repair_notes = #{repairNotes}
         WHERE
             id = #{id}
@@ -75,7 +75,7 @@
         UPDATE fault_reports
         SET
             query_time = NOW(),
-            status = 'acknowledged'
+            status = #{status}
         WHERE
             id = #{id}
           AND status = 'reported'
@@ -91,8 +91,24 @@
     <select id="selectByType" parameterType="string" resultMap="FaultReportMap">
         SELECT *
         FROM fault_reports
-        WHERE type = #{type}
-        AND report_time >= CURDATE() -- 今天开始
+        WHERE report_time >= CURDATE()
+
+        <choose>
+            <!-- 情况1: type = 'device' → 查询 type IN ('1', '2') -->
+            <when test="type != null and type == 'device'.toString()">
+                AND type IN ('electrical', 'mechanical')
+            </when>
+
+            <!-- 情况2: type = 'Type' 或其他表示“全部”的值 → 不加 type 条件 -->
+            <when test="type == null or type == ''">
+                <!-- 无额外条件 -->
+            </when>
+
+            <!-- 情况3: 其他具体 type 值 → 精确匹配 -->
+            <otherwise>
+                AND type = #{type}
+            </otherwise>
+        </choose>
 
         ORDER BY report_time DESC
     </select>
@@ -100,7 +116,8 @@
     <select id="selectByAdmin" parameterType="string" resultMap="FaultReportMap">
         SELECT *
         FROM fault_reports
-        WHERE report_time >= CURDATE() -- 今天开始
+        WHERE report_time >= CURDATE()
+        and type = #{faultType}
         ORDER BY report_time DESC
     </select>
 
@@ -108,8 +125,34 @@
         SELECT *
         FROM fault_reports
         WHERE reporter_id = #{userId}
-          AND report_time >= CURDATE() -- 今天开始
+          AND report_time >= CURDATE()
+        <choose>
+            <!-- 情况1: type = 'device' → 查询 type IN ('1', '2') -->
+            <when test="type != null and type == 'device'.toString()">
+                AND type IN ('electrical', 'mechanical')
+            </when>
+
+            <!-- 情况2: type = 'Type' 或其他表示“全部”的值 → 不加 type 条件 -->
+            <when test="type == null or type == ''">
+                <!-- 无额外条件 -->
+            </when>
+
+            <!-- 情况3: 其他具体 type 值 → 精确匹配 -->
+            <otherwise>
+                AND type = #{type}
+            </otherwise>
+        </choose>
 
         ORDER BY report_time DESC
     </select>
+
+<!--    更新管理员处理质量和生产异常-->
+<!--    <update id="updateByAdmin">-->
+<!--        UPDATE fault_reports-->
+<!--        SET-->
+<!--            status = #{status}-->
+<!--        WHERE-->
+<!--            id = #{id}-->
+<!--          AND status = 'reported'-->
+<!--    </update>-->
 </mapper>
