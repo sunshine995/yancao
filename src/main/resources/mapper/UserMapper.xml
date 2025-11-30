@@ -14,8 +14,8 @@
     <!--  插入用户信息  -->
     <insert id="insertUser" parameterType="com.office.yancao.entity.User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_info
-    (username, password, phone, position, role, classes, section, party, member, department )
-    VALUES ( #{username}, #{password}, #{phone}, #{position}, #{role}, #{classes}, #{section}, #{party}, #{member}, #{department} ) </insert>
+    (username, password, phone, position, role, classes, section, party, member, department, support_position, birthday, line )
+    VALUES ( #{username}, #{password}, #{phone}, #{position}, #{role}, #{classes}, #{section}, #{party}, #{member}, #{department}, #{support_position}, #{birthday}, #{line} ) </insert>
     <!--  插入用户部门关联关系  -->
     <insert id="insertUserDepartment">
          INSERT INTO user_department ( user_id, department_id )

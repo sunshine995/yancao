@@ -71,6 +71,7 @@ public class UserService {
         userInfo.put("department", dbUser.getDepartment());
         userInfo.put("party", dbUser.getParty());
         userInfo.put("member", dbUser.getMember());
+        userInfo.put("support_position", dbUser.getSupport_position());
         result.put("user", userInfo);
         return result;
     }
@@ -103,48 +104,15 @@ public class UserService {
         user.setSection(registerDTO.getSection());
         user.setParty(registerDTO.getParty());
         user.setMember(registerDTO.getMember());
-
-        // 3. 根据departmentId查询部门名称并设置
-//        if (registerDTO.getDepartmentId() != null) {
-//            try {
-//                // 使用UserDepartmentMapper获取部门信息（根据系统实际情况调整参数）
-//                List<Department> departments = userDepartmentMapper.getDirectChildren(0L); // 使用0作为顶级部门ID
-//                System.out.println("查询到的部门列表: " + departments);
-//                System.out.println("查找的部门ID: " + registerDTO.getDepartmentId());
-//
-//                // 如果直接查询没有结果，尝试查询所有部门
-//                if (departments == null || departments.isEmpty()) {
-//                    // 备用方案：直接查询department表的所有部门
-//                    departments = userDepartmentMapper.getDirectChildren(null);
-//                    System.out.println("尝试备用查询，部门列表: " + departments);
-//                }
-//
-//                Optional<Department> deptOptional = departments.stream()
-//                        .filter(dept -> {
-//                            boolean match = dept.getId().equals(registerDTO.getDepartmentId());
-//                            System.out.println("检查部门: " + dept.getId() + "=" + dept.getName() + ", 匹配结果: " + match);
-//                            return match;
-//                        })
-//                        .findFirst();
-//
-//                if (deptOptional.isPresent()) {
-//                    user.setDepartment(deptOptional.get().getName());
-//                    System.out.println("设置部门名称: " + deptOptional.get().getName());
-//                } else {
-//                    System.out.println("未找到匹配的部门ID: " + registerDTO.getDepartmentId());
-//                    // 特殊处理：如果部门ID为1，直接设置为"制丝部门"
-//                    if (registerDTO.getDepartmentId() != null && registerDTO.getDepartmentId() == 1L) {
-//                        user.setDepartment("制丝部门");
-//                        System.out.println("特殊处理：部门ID为1，直接设置为制丝部门");
-//                    } else {
-//                        // 设置默认部门名称，避免null
-//                        user.setDepartment("未分配部门");
-//                    }
-//                }
-//            } catch (Exception e) {
-//                System.out.println("查询部门信息出错: " + e.getMessage());
-//                // 出错时也设置默认值
-//                user.setDepartment("部门信息获取失败");
+        user.setSupport_position(registerDTO.getSupport_position()); // 设置辅助岗位
+        user.setBirthday(registerDTO.getBirthday()); // 设置生日
+        user.setLine(registerDTO.getLine()); // 设置生产线
+        // 设置部门信息
+        if (registerDTO.getDepartment() != null && !registerDTO.getDepartment().isEmpty()) {
+            user.setDepartment(registerDTO.getDepartment());
+        } else {
+            user.setDepartment("未分配部门");
+        }
 //            }
 //        } else {
 //            // 如果没有提供departmentId，也设置默认值

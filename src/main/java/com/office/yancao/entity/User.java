@@ -3,8 +3,6 @@ package com.office.yancao.entity;
 import lombok.Data;
 import java.time.LocalDate;
 
-import java.util.Date;
-
 @Data
 public class User {
     private Long id;
@@ -29,11 +27,13 @@ public class User {
     //党小组名称
     private String member;
 
-    //辅助岗位
-    private String supportPosition;
+    // getter方法用于适配update操作中的supportPosition参数
+    public String getSupportPosition() {
+        return this.support_position;
+    }
 
-    // 生日
-    private Date birthday;
-
-
+    // setter方法用于适配update操作中的supportPosition参数
+    public void setSupportPosition(String supportPosition) {
+        this.support_position = supportPosition;
+    }
 }
