@@ -25,4 +25,5 @@ public class RegisterDTO {
     private String member;      // 党员组
     private String role;        // 角色
     private String support_position; // 辅助岗位，多个用逗号连接
+    private String department;  // 部门名称
 }

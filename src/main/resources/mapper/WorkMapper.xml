@@ -44,7 +44,18 @@
     <!--  根据用户ID查询该用户所在班级的今日工单  -->
     <select id="selectTodayWorkByUserId" resultType="com.office.yancao.entity.Work"> SELECT w.id, w.user_id, w.classes, w.line, w.number, w.brand, w.batchNo, w.yield, w.is_remark, w.remark, w.images, w.create_time FROM work w WHERE w.user_id = #{userId} AND w.create_time BETWEEN #{startTime} AND #{endTime} ORDER BY w.create_time DESC </select>
     <!--  根据班级查询今日工单  -->
-    <select id="selectTodayWorkByClass" resultType="com.office.yancao.entity.Work"> SELECT id, user_id, classes, line, number, brand, batchNo, yield, is_remark, remark, images, create_time FROM work WHERE classes = #{classes} AND create_time BETWEEN #{startTime} AND #{endTime} ORDER BY create_time DESC </select>
+<select id="selectTodayWorkByClass" resultType="com.office.yancao.entity.Work">
+    SELECT 
+        id, user_id, classes, line, number, brand, batchNo, yield, is_remark, remark, images, create_time 
+    FROM work 
+    WHERE 
+        classes = #{classes} 
+        AND create_time BETWEEN 
+            CURDATE() 
+        AND 
+            CONCAT(DATE_ADD(CURDATE(), INTERVAL 1 DAY), ' 02:00:00')
+    ORDER BY create_time DESC
+</select>
     <!--  获取今日工单总数  -->
     <select id="countTodayWorkByClass" resultType="java.lang.Integer"> SELECT COUNT(*) FROM work WHERE classes = #{classes} AND create_time BETWEEN #{startTime} AND #{endTime} </select>
 </mapper>
