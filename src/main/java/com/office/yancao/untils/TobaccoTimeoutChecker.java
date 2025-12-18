@@ -48,7 +48,7 @@ public class TobaccoTimeoutChecker {
 
             // 2. 查询符合条件的记录：add_work_order_id为空，exit_work_order_id不为空，且is_timeout为0（未超时）
             String querySql = String.format(
-                    "SELECT id, operate_time " +
+                    "SELECT id, brand, operate_time " +
                     "FROM %s " +
                     "WHERE add_work_order_id IS NULL " +
                     "  AND exit_work_order_id IS NOT NULL " +
@@ -62,22 +62,25 @@ public class TobaccoTimeoutChecker {
 
             while (rs.next()) {
                 Long recordId = rs.getLong("id");
+                String brand = rs.getString("brand");
                 LocalDateTime operateTime = rs.getTimestamp("operate_time").toLocalDateTime();
 
                 // 计算operate_time与当前时间的天数差
                 long daysDiff = ChronoUnit.DAYS.between(operateTime, now);
 
-                // 若超过10天，更新is_timeout为1
+                // 若超过10天，且brand不包含"利群"，则更新is_timeout为1
                 if (daysDiff > 10) {
-                    String updateSql = String.format(
-                            "UPDATE %s " +
-                            "SET is_timeout = 1 " +
-                            "WHERE id = ?", TABLE_NAME);
-                    updateStmt = conn.prepareStatement(updateSql);
-                    updateStmt.setLong(1, recordId);
-                    updateStmt.executeUpdate();
-                    updateCount++;
-                    logger.info("记录ID: {} 已超时（{}天），已更新is_timeout为1", recordId, daysDiff);
+                    
+                        String updateSql = String.format(
+                                "UPDATE %s " +
+                                "SET is_timeout = 1 " +
+                                "WHERE id = ?", TABLE_NAME);
+                        updateStmt = conn.prepareStatement(updateSql);
+                        updateStmt.setLong(1, recordId);
+                        updateStmt.executeUpdate();
+                        updateCount++;
+                        logger.info("记录ID: {} 已超时（{}天），已更新is_timeout为1", recordId, daysDiff);
+                    
                 }
             }
 
