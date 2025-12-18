@@ -7,6 +7,7 @@ import com.office.yancao.entity.*;
 import com.office.yancao.mapper.NoticeMapper;
 import com.office.yancao.mapper.UserMapper;
 import com.office.yancao.mapper.WorkGroupMapper;
+import com.office.yancao.service.admin.MqttService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,10 @@ public class NoticeService {
 
     @Autowired
     private WorkGroupMapper workGroupMapper;
+
+    // 新增：注入MQTT服务
+    @Autowired
+    private MqttService mqttService;
 
 
     @Transactional
@@ -84,6 +89,15 @@ public class NoticeService {
             noticeReceiver.setNoticeId(notice.getId());
             noticeReceiver.setUserId(userId);
             noticeMapper.insertReceiver(noticeReceiver);
+
+            // ============ 新增：发送MQTT实时通知 ============
+            try {
+                sendNoticeNotification(userId, notice);
+            } catch (Exception e) {
+                // 记录错误但不要影响主流程
+                System.out.println("发送MQTT通知失败，用户ID: " + userId + ", 错误: " + e.getMessage());
+                System.err.println("发送MQTT通知失败，用户ID: " + userId + ", 错误: " + e.getMessage());
+            }
         }
     }
 
@@ -172,6 +186,43 @@ public class NoticeService {
     public List<Article> getArticleBanner() {
         List<Article> res = noticeMapper.getArticleBanner();
         return res;
+    }
+
+    /**
+     * 向单个用户发送公告通知
+     */
+    private void sendNoticeNotification(Long userId, Notice notice) {
+        System.out.println(userId);
+        // 构建通知消息
+        Map<String, Object> noticeMsg = new HashMap<>();
+        noticeMsg.put("msgId", "NOTICE_" + notice.getId() + "_" + System.currentTimeMillis());
+        noticeMsg.put("type", "NOTICE_PUBLISHED");
+        noticeMsg.put("priority", "MEDIUM"); // 公告通常设为中等优先级
+        noticeMsg.put("title", "新公告通知");
+        noticeMsg.put("content", "您收到一条新公告：" + notice.getTitle());
+        noticeMsg.put("noticeId", notice.getId());
+        noticeMsg.put("noticeTitle", notice.getTitle());
+        noticeMsg.put("publisher", notice.getCreatedBy());
+        noticeMsg.put("publishTime", new Date());
+
+        // 修复：将 Map.of() 替换为 HashMap 初始化（兼容 Java 8）
+        // 1. 构建 action 的 params 子Map
+        Map<String, Object> actionParams = new HashMap<>();
+        actionParams.put("noticeId", notice.getId());
+        // 2. 构建 action 主Map
+        Map<String, Object> actionMap = new HashMap<>();
+        actionMap.put("type", "OPEN_NOTICE");
+        actionMap.put("params", actionParams);
+        // 3. 将 actionMap 放入通知消息
+        noticeMsg.put("action", actionMap);
+
+        noticeMsg.put("requireAck", true);
+        noticeMsg.put("sound", "notice_alert");
+        noticeMsg.put("vibrate", true);
+
+        // 发送到用户个人主题
+        String topic = "workshop/" + userId + "/notice";
+        mqttService.publishMessage(topic, noticeMsg, 1, false);
     }
 
     public Article getArticleDetail(Long id) {

@@ -96,17 +96,17 @@
         <choose>
             <!-- 情况1: type = 'device' → 查询 type IN ('1', '2') -->
             <when test="type != null and type == 'device'.toString()">
-                AND type IN ('electrical', 'mechanical')
+                AND (type LIKE '%electrical%'OR type LIKE '%mechanical%')
             </when>
 
-            <!-- 情况2: type = 'Type' 或其他表示“全部”的值 → 不加 type 条件 -->
+            <!-- 情况2: type = '' 或其他表示“全部”的值 → 不加 type 条件 -->
             <when test="type == null or type == ''">
                 <!-- 无额外条件 -->
             </when>
 
             <!-- 情况3: 其他具体 type 值 → 精确匹配 -->
             <otherwise>
-                AND type = #{type}
+                AND type LIKE CONCAT('%', #{type}, '%')
             </otherwise>
         </choose>
 

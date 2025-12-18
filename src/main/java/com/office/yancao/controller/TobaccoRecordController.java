@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api/tobaccos")
 public class TobaccoRecordController {
 
     private final TobaccoRecordService tobaccoRecordService;
@@ -26,7 +27,7 @@ public class TobaccoRecordController {
      * 获取所有工单的退出烟叶（支持搜索）
      * URL：GET /api/tobaccos?status=exit&searchKeyword={keyword}
      */
-    @GetMapping("/api/tobaccos")
+    @GetMapping("")
     public ResponseEntity<Result<List<TobaccoRecordDTO>>> getAllExitTobaccos(
             @RequestParam String status, // 固定为exit
             @RequestParam(required = false) String searchKeyword) {
@@ -44,9 +45,8 @@ public class TobaccoRecordController {
 
     /**
      * 根据工单ID查询已加入的烟叶
-     * URL：GET /api/tobaccos/added/{workOrderId}
      */
-    @GetMapping("/api/tobaccos/added/{workOrderId}")
+    @GetMapping("/added/{workOrderId}")
     public ResponseEntity<Result<List<TobaccoRecordDTO>>> getAddedTobaccosByWorkOrderId(
             @PathVariable Long workOrderId) {
         
@@ -64,7 +64,7 @@ public class TobaccoRecordController {
      * 添加退出烟叶记录
      * URL：POST /api/tobaccos/addExit
      */
-    @PostMapping("/api/tobaccos/addExit")
+    @PostMapping("/addExit")
     public ResponseEntity<Result<TobaccoRecordDTO>> addExitTobacco(@RequestBody TobaccoRecordDTO tobaccoRecordDTO) {
         try {
             // 转换DTO为实体
@@ -86,7 +86,7 @@ public class TobaccoRecordController {
     }
 
     // 移除已加入的烟叶
-    @PutMapping("/api/tobaccos/remove")
+    @PutMapping("/remove")
     public Result<TobaccoRecordDTO> removeAddedTobacco(@RequestBody Map<String, Object> params) {
         // 解析请求参数
         String brand = (String) params.get("brand");
@@ -100,7 +100,7 @@ public class TobaccoRecordController {
     }
 
     // 处理"加入本批料"请求
-    @PutMapping("/api/tobaccos/add")
+    @PutMapping("/add")
     public Result<TobaccoRecord> addToBatch(@RequestBody Map<String, Object> params) {
         try {
             String brand = (String) params.get("brand");

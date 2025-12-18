@@ -84,4 +84,10 @@
           AND team = #{team}
     </select>
 
+    <select id="selectByDateAndDay" resultMap="BaseResultMap">
+        SELECT * FROM shift_schedule
+        WHERE schedule_date = #{date}
+          AND shift_type = #{day}
+    </select>
+
 </mapper>

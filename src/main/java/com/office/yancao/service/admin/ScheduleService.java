@@ -416,47 +416,57 @@ public class ScheduleService {
     /**
      * 生成月度排班数据（只从第一个周一开始）
      */
-    public List<ShiftSchedule> generateMonthlySchedules(String month) {
-        List<ShiftSchedule> schedules = new ArrayList<>();
-        LocalDate startDate = LocalDate.parse(month + "-01");
-        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+    public void generateMonthlySchedules() {
+        // 获取当前日期
+        LocalDate today = LocalDate.now();
 
-        // 找到第一个周一
-        LocalDate firstMonday = getFirstMondayOfMonth(startDate);
+        // 上个月
+        LocalDate lastMonth = today.minusMonths(1);
+        String lastMonthStr = lastMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        // 本月
+        String currentMonthStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
-        // 如果第一个周一在本月，则从第一个周一开始生成
-        // 如果第一个周一在下个月（即1号是周日的情况），则从1号开始生成
-        LocalDate generateStartDate = firstMonday.isAfter(endDate) ? startDate : firstMonday;
+        // 获取上个月最后一天
+        LocalDate lastDayOfLastMonth = lastMonth.withDayOfMonth(lastMonth.lengthOfMonth());
 
-        // 初始班次配置
-        String[] currentShifts = {"DAY", "MID"};
+        // 查询上个月最后一天的排班
+        List<ShiftSchedule> lastDaySchedules = shiftScheduleMapper.selectByDateRange(lastDayOfLastMonth, lastDayOfLastMonth);
+        String jiaShift;
+        String yiShift;
 
-        // 从生成开始日期开始，按周处理
-        LocalDate currentDate = generateStartDate;
-        int weekNumber = getNaturalWeekOfMonth(generateStartDate);
+        if (lastDaySchedules.isEmpty()) {
+            // 如果上个月最后一天没有排班，使用默认班次并轮换一次
+            jiaShift = "MID"; // 因为默认是甲班白班，乙班中班，轮换一次后甲班中班，乙班白班
+            yiShift = "DAY";
+        } else {
+            // 从排班数据中提取甲班和乙班的班次
+            jiaShift = lastDaySchedules.stream()
+                    .filter(s -> "JIA".equals(s.getTeam()))
+                    .map(ShiftSchedule::getShiftType)
+                    .findFirst()
+                    .orElse("DAY");
+            yiShift = lastDaySchedules.stream()
+                    .filter(s -> "YI".equals(s.getTeam()))
+                    .map(ShiftSchedule::getShiftType)
+                    .findFirst()
+                    .orElse("MID");
 
-        while (!currentDate.isAfter(endDate)) {
-            // 获取当前周的结束日期
-            LocalDate weekEnd = getEndOfWeek(currentDate);
-            if (weekEnd.isAfter(endDate)) {
-                weekEnd = endDate;
-            }
-
-            // 生成当前周的所有排班
-            LocalDate weekDate = currentDate;
-            while (!weekDate.isAfter(weekEnd)) {
-                schedules.add(createSchedule(weekDate, "JIA", currentShifts[0], false));
-                schedules.add(createSchedule(weekDate, "YI", currentShifts[1], false));
-                weekDate = weekDate.plusDays(1);
-            }
-
-            // 移动到下一周并轮换班次
-            currentDate = weekEnd.plusDays(1);
-            currentShifts = rotateShifts(currentShifts);
-            weekNumber++;
+            // 轮换一次（交换）
+            String temp = jiaShift;
+            jiaShift = yiShift;
+            yiShift = temp;
         }
 
-        return schedules;
+        // 构建DTO
+        GenerateScheduleDTO dto = new GenerateScheduleDTO();
+        dto.setMonth(currentMonthStr);
+        dto.setStartWeek(1);
+        dto.setJiaShift(jiaShift);
+        dto.setYiShift(yiShift);
+
+        // 调用更新剩余排班方法，从第1周开始，这样会重新生成整个月的自动排班
+        updateRemainingSchedule(dto);
+
     }
 
     /**

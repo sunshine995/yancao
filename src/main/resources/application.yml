@@ -2,6 +2,16 @@ server:
   port: 8081
   address: 0.0.0.0
 
+mqtt:
+  broker-url: tcp://localhost:1883
+  client-id: workshop_server_${random.uuid}
+  username: admin  # 如果EMQX配置了用户名密码
+  password: yyg198295
+  connection-timeout: 30
+  keep-alive-interval: 60
+  clean-session: true
+  automatic-reconnect: true
+
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/yancao?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai

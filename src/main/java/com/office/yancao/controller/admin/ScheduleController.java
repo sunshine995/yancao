@@ -5,10 +5,11 @@ import com.office.yancao.dto.admin.ShiftScheduleVO;
 import com.office.yancao.entity.admin.ShiftSchedule;
 import com.office.yancao.service.admin.ScheduleService;
 import com.office.yancao.untils.Result;
-import lombok.RequiredArgsConstructor;
+import com.office.yancao.service.admin.TaskGenerationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,9 @@ public class ScheduleController {
 
     @Autowired
     private ScheduleService scheduleService;
+
+    @Autowired
+    private TaskGenerationService taskGenerationService;
 
     // 更新剩余本月排版
     @PostMapping("/update-remaining")
@@ -49,10 +53,10 @@ public class ScheduleController {
      * 生成月度排班
      */
     @PostMapping("/generate-monthly")
-    public Result<Void> generateMonthlySchedule(@RequestBody Map<String, String> params) {
+    public Result<Void> generateMonthlySchedule() {
         try {
-            String month = params.get("month");
-            scheduleService.generateMonthlySchedules(month);
+            //scheduleService.generateMonthlySchedules();
+            taskGenerationService.generateTasksForDate(LocalDate.now());
             return Result.success();
         } catch (Exception e) {
             return Result.fail("生成月度排班失败");

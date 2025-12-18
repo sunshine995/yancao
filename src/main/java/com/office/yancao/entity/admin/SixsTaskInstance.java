@@ -11,14 +11,14 @@ import java.util.List;
 public class SixsTaskInstance {
     private Integer id;
     private Integer templateId;
-    private Integer employeeId;
+    private Long employeeId;
     private LocalDate scheduledDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime plannedCompletionTime;
 
     private String status; // pending, completed, timeout
-    private String submittedImages; // JSON 数组
+    private List<String> submittedImages; // JSON 数组
     private String completionNotes;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -32,7 +32,7 @@ public class SixsTaskInstance {
 
     private String spotCheckResult; // pass, fail
     private String spotCheckNotes;
-    private String spotCheckImages; // JSON 数组
+    private List<String> spotCheckImages; // JSON 数组
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

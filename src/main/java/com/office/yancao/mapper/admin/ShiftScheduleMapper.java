@@ -34,6 +34,8 @@ public interface ShiftScheduleMapper {
 
     ShiftSchedule selectByDateAndTeam(@Param("date") LocalDate date, @Param("team") String team);
 
+    ShiftSchedule selectByDateAndDay(@Param("date") LocalDate date, @Param("day") String day);
+
 
     /**
      * 查询从指定日期开始的自动排班

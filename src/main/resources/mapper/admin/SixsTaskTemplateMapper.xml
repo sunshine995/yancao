@@ -126,4 +126,13 @@
         ORDER BY group_name, shift, weekday
     </select>
 
+    <select id="selectTemplateById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sixs_task_templates
+        WHERE id = #{templateId}
+        AND is_active = 1
+    </select>
+
+
 </mapper>

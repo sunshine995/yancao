@@ -34,4 +34,6 @@ public interface SixsTaskTemplateMapper {
     // 查询所有活跃模板
     List<SixsTaskTemplate> findByCondition(@Param("condition") SixsReqDTO condition);
 
+    SixsTaskTemplate selectTemplateById(@Param("templateId") Integer templateId);
+
 }

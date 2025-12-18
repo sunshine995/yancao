@@ -9,7 +9,7 @@
         <result column="scheduled_date" property="scheduledDate" />
         <result column="planned_completion_time" property="plannedCompletionTime" />
         <result column="status" property="status" />
-        <result column="submitted_images" property="submittedImages" />
+        <result column="submitted_images" property="submittedImages" typeHandler="com.office.yancao.untils.JsonListTypeHandler"/>
         <result column="completion_notes" property="completionNotes" />
         <result column="submitted_at" property="submittedAt" />
         <result column="spot_check_status" property="spotCheckStatus" />
@@ -17,7 +17,37 @@
         <result column="spot_check_time" property="spotCheckTime" />
         <result column="spot_check_result" property="spotCheckResult" />
         <result column="spot_check_notes" property="spotCheckNotes" />
-        <result column="spot_check_images" property="spotCheckImages"/>
+        <result column="spot_check_images" property="spotCheckImages" typeHandler="com.office.yancao.untils.JsonListTypeHandler"/>
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <resultMap id="SixTaskInstanceDTOResultMap" type="com.office.yancao.dto.admin.SixTaskInstanceDTO">
+        <!-- 首先继承BaseResultMap，如果SixTaskInstanceDTO继承了SixsTaskInstance，或者字段重合部分多的话 -->
+        <id column="id" property="id" />
+        <result column="template_id" property="templateId" />
+        <result column="employee_id" property="employeeId" />
+        <result column="employeeName" property="employeeName" />
+        <result column="scheduled_date" property="scheduledDate" />
+        <result column="planned_completion_time" property="plannedCompletionTime" />
+        <result column="status" property="status" />
+        <result column="submitted_images" property="submittedImages" typeHandler="com.office.yancao.untils.JsonListTypeHandler"/>
+        <result column="completion_notes" property="completionNotes" />
+        <result column="submitted_at" property="submittedAt" />
+        <result column="spot_check_status" property="spotCheckStatus" />
+        <result column="spot_checker_id" property="spotCheckerId" />
+        <result column="spotCheckerName" property="spotCheckerName" />
+        <result column="spot_check_time" property="spotCheckTime" />
+        <result column="spot_check_result" property="spotCheckResult" />
+        <result column="spot_check_notes" property="spotCheckNotes" />
+        <result column="spot_check_images" property="spotCheckImages" typeHandler="com.office.yancao.untils.JsonListTypeHandler"/>
+        <!-- 模板表字段 -->
+        <result column="template_name" property="templateName" />
+        <result column="group_name" property="groupName" />
+        <result column="shift" property="shift" />
+        <result column="weekday" property="weekday" />
+        <result column="task_content" property="taskContent" />
+        <result column="task_standard" property="taskStandard" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
     </resultMap>
@@ -83,5 +113,98 @@
         WHERE scheduled_date = #{scheduledDate}
         ORDER BY employee_id, planned_completion_time
     </select>
+
+    <!-- 新增：更新任务实例 -->
+    <update id="updateById">
+        UPDATE sixs_task_instances
+        <set>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="submittedImages != null">submitted_images = #{submittedImages, typeHandler=com.office.yancao.untils.JsonListTypeHandler},</if>
+            <if test="completionNotes != null">completion_notes = #{completionNotes},</if>
+            <if test="submittedAt != null">submitted_at = #{submittedAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="spotCheckStatus != null and spotCheckStatus != ''">spot_check_status = #{spotCheckStatus},</if>
+            <if test="spotCheckerId != null">spot_checker_id = #{spotCheckerId},</if>
+            <if test="spotCheckTime != null">spot_check_time = #{spotCheckTime},</if>
+            <if test="spotCheckResult != null">spot_check_result = #{spotCheckResult},</if>
+            <if test="spotCheckNotes != null">spot_check_notes = #{spotCheckNotes},</if>
+            <if test="spotCheckImages != null">spot_check_images = #{spotCheckImages, typeHandler=com.office.yancao.untils.JsonListTypeHandler}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM sixs_task_instances WHERE id = #{id}
+    </select>
+
+    <select id="selectSpotCheckTasks" resultMap="SixTaskInstanceDTOResultMap">
+        SELECT
+        sti.id,
+        sti.template_id,
+        sti.employee_id,
+        e1.username as employeeName,
+        sti.scheduled_date,
+        sti.planned_completion_time,
+        sti.status,
+        sti.submitted_images,
+        sti.completion_notes,
+        sti.submitted_at,
+        sti.spot_check_status,
+        sti.spot_checker_id,
+        e2.username as spotCheckerName,
+        sti.spot_check_time,
+        sti.spot_check_result,
+        sti.spot_check_notes,
+        sti.spot_check_images,
+        stt.template_name,
+        stt.group_name,
+        stt.shift,
+        stt.weekday,
+        stt.task_content,
+        stt.task_standard,
+        stt.created_at,
+        stt.updated_at
+        FROM sixs_task_instances sti
+        LEFT JOIN sixs_task_templates stt ON sti.template_id = stt.id
+        LEFT JOIN user_info e1 ON sti.employee_id = e1.id
+        LEFT JOIN user_info e2 ON sti.spot_checker_id = e2.id
+
+    </select>
+
+
+    <select id="getSixTaskById" resultMap="SixTaskInstanceDTOResultMap">
+        SELECT
+            sti.id,
+            sti.template_id,
+            sti.employee_id,
+            e1.username as employeeName,
+            sti.scheduled_date,
+            sti.planned_completion_time,
+            sti.status,
+            sti.submitted_images,
+            sti.completion_notes,
+            sti.submitted_at,
+            sti.spot_check_status,
+            sti.spot_checker_id,
+            e2.username as spotCheckerName,
+            sti.spot_check_time,
+            sti.spot_check_result,
+            sti.spot_check_notes,
+            sti.spot_check_images,
+            stt.template_name,
+            stt.group_name,
+            stt.shift,
+            stt.weekday,
+            stt.task_content,
+            stt.task_standard,
+            stt.created_at,
+            stt.updated_at
+        FROM sixs_task_instances sti
+         LEFT JOIN sixs_task_templates stt ON sti.template_id = stt.id
+         LEFT JOIN user_info e1 ON sti.employee_id = e1.id
+         LEFT JOIN user_info e2 ON sti.spot_checker_id = e2.id
+        where sti.id = #{taskId}
+    </select>
+
 
 </mapper>

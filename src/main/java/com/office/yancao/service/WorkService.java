@@ -2,12 +2,12 @@ package com.office.yancao.service;
 
 import com.office.yancao.dto.WorkDTO;
 import com.office.yancao.entity.Work;
+import com.office.yancao.entity.admin.ShiftSchedule;
 import com.office.yancao.mapper.UserMapper;
 import com.office.yancao.mapper.WorkMapper;
+import com.office.yancao.mapper.admin.ShiftScheduleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -15,18 +15,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
 public class WorkService {
-
-    // ✅ 使用配置文件中的路径
-    @Value("${file.upload-path}")
-    private String uploadPath;
-
-    @Value("${file.base-url}")
-    private String baseUrl;
 
     @Resource
     private WorkMapper workMapper;
@@ -34,13 +29,22 @@ public class WorkService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private ShiftScheduleMapper shiftScheduleMapper;
+
     public boolean saveWork(WorkDTO workDTO) {
         // ✅ 处理图片上传并转换为字符串路径
+        String classes = workDTO.getClasses();
+        if (classes.equals("甲班班长")){
+            classes = "甲班";
+        }else {
+            classes = "乙班";
+        }
 
         // ✅ 创建实体对象
         Work work = new Work();
         work.setUserId(workDTO.getUserId());
-        work.setClasses(workDTO.getClasses());
+        work.setClasses(classes);
         work.setLine(workDTO.getLine());
         work.setNumber(workDTO.getNumber());
         work.setBrand(workDTO.getBrand());
@@ -84,6 +88,9 @@ public class WorkService {
 
         // 获取用户所在班级
         String userClass = getUserClass(userId);
+        if (userClass.equals("管理组")){
+            userClass = getClasses();
+        }
 
         // 计算当天时间范围
         Date startTime = getStartTimeOfToday();
@@ -100,6 +107,45 @@ public class WorkService {
         result.put("list", workOrders != null ? workOrders : Collections.emptyList());
 
         return result;
+    }
+
+    // 工具方法：将 LocalDateTime 转为 Date（假设使用 java.util.Date）
+    private Date convertToDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant());
+    }
+
+    private String getClasses(){
+
+        // 获取当前时间（使用系统时间）
+        LocalDateTime now = LocalDateTime.now();
+        String currentShift; // 当前班次："甲班" 或 "乙班"
+        Date startTime;
+        Date endTime;
+
+        LocalTime time = now.toLocalTime();
+        if (time.compareTo(LocalTime.of(8, 0)) >= 0 && time.compareTo(LocalTime.of(16, 0)) < 0) {
+            // 08:00 <= 当前时间 < 16:00 → 甲班
+            ShiftSchedule day = shiftScheduleMapper.selectByDateAndDay(LocalDate.now(), "DAY");
+            if (day.getTeam().equals("JIA")){
+                currentShift = "甲班";
+            }else {
+                currentShift = "乙班";
+            }
+        } else if ((time.compareTo(LocalTime.of(16, 0)) >= 0 && time.compareTo(LocalTime.of(23, 59, 59)) <= 0)
+                || (time.compareTo(LocalTime.MIDNIGHT) >= 0 && time.compareTo(LocalTime.of(1, 0)) <= 0)) {
+            // 16:00 <= 当前时间 <= 23:59:59 或 00:00 <= 当前时间 <= 01:00 → 乙班
+            ShiftSchedule day = shiftScheduleMapper.selectByDateAndDay(LocalDate.now(), "DAY");
+            if (day.getTeam().equals("JIA")){
+                currentShift = "甲班";
+            }else {
+                currentShift = "乙班";
+            }
+
+        } else {
+            currentShift = "无班次";
+
+        }
+        return currentShift;
     }
 
     private Date getStartTimeOfToday() {
