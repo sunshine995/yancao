@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @RestController
@@ -28,15 +30,22 @@ public class FileUploadController {
     private WebConfig webConfig;
 
     @PostMapping("/upload")
-    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
+                                                         @RequestParam(value = "bizType", required = false) String bizType) {
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(new FileUploadResponse(false, "文件为空", null));
             }
 
+            if (bizType == null) {
+                bizType = "common";
+            }
+
             // 创建上传目录
-            Path uploadPath = Paths.get(uploadDir);
+            // 3. 按 业务 / 年月 创建目录
+            String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+            Path uploadPath = Paths.get(uploadDir, bizType, datePath);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
@@ -55,7 +64,11 @@ public class FileUploadController {
             Files.copy(file.getInputStream(), filePath);
 
             // 生成访问 URL
-            String fileUrl = webConfig.getServerBaseUrl() + "/uploads/" + filename;
+            String fileUrl = webConfig.getServerBaseUrl()
+                    + "/uploads/"
+                    + bizType + "/"
+                    + datePath + "/"
+                    + filename;
 
 
             FileData fileData = new FileData(

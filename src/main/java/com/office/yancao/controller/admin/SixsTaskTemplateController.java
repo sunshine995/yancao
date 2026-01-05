@@ -1,5 +1,6 @@
 package com.office.yancao.controller.admin;
 
+import com.alibaba.excel.EasyExcel;
 import com.github.pagehelper.PageInfo;
 import com.office.yancao.dto.admin.SixTaskInstanceDTO;
 import com.office.yancao.dto.admin.SixsReqDTO;
@@ -12,8 +13,14 @@ import com.office.yancao.untils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sixs/templates")
@@ -119,4 +126,57 @@ public class SixsTaskTemplateController {
         taskGenerationService.submitSpotCheck(sixsTaskInstance);
         return Result.success();
     }
+
+
+    /**
+     * 导出Excel
+     */
+    @GetMapping("/export")
+    public void exportExcel(HttpServletResponse response) {
+        taskTemplateService.exportToExcel(response);
+    }
+
+    /**
+     * 导入Excel
+     */
+    @PostMapping("/import")
+    public Result<Map<String, Object>> importExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "false") boolean clearAll) {
+
+        if (file.isEmpty()) {
+            return Result.fail("请选择要导入的文件");
+        }
+
+        // 检查文件类型
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null ||
+                (!originalFilename.toLowerCase().endsWith(".xlsx") &&
+                        !originalFilename.toLowerCase().endsWith(".xls"))) {
+            return Result.fail("请上传Excel文件 (.xlsx 或 .xls 格式)");
+        }
+
+        try {
+            SixsTaskTemplateService.ImportResult importResult =
+                    taskTemplateService.importFromExcel(file, clearAll);
+
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("successCount", importResult.getSuccessCount());
+            resultData.put("failCount", importResult.getFailCount());
+            resultData.put("errorMessages", importResult.getErrorMessages());
+
+            String message = String.format("导入完成，成功：%d条，失败：%d条",
+                    importResult.getSuccessCount(), importResult.getFailCount());
+
+            if (importResult.getFailCount() > 0) {
+                message += "，请查看错误信息";
+            }
+
+            return Result.success(resultData);
+
+        } catch (Exception e) {
+            return Result.fail("导入失败: " + e.getMessage());
+        }
+    }
+
 }

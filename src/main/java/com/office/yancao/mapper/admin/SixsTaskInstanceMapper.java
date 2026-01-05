@@ -2,6 +2,7 @@ package com.office.yancao.mapper.admin;
 
 import com.office.yancao.entity.admin.SixsTaskInstance;
 import com.office.yancao.dto.admin.SixTaskInstanceDTO;
+import com.office.yancao.entity.admin.SixsTaskTemplate;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,6 +29,7 @@ public interface SixsTaskInstanceMapper {
 
     // 根据日期查询所有任务实例
     List<SixsTaskInstance> findByDate(@Param("scheduledDate") LocalDate scheduledDate);
+
 
     void updateById(SixsTaskInstance sixsTaskInstance);
 

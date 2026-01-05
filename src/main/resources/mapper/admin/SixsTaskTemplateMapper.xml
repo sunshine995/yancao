@@ -23,6 +23,13 @@
         required_images, is_active, created_at, updated_at
     </sql>
 
+    <!-- 查询所有模板 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM sixs_task_templates
+        WHERE is_active = 1
+        ORDER BY group_name, shift, weekday
+    </select>
+
 
     <!-- 新增模板 -->
     <insert id="insert" parameterType="com.office.yancao.entity.admin.SixsTaskTemplate"
@@ -133,6 +140,38 @@
         WHERE id = #{templateId}
         AND is_active = 1
     </select>
+
+    <!-- 清空表数据 -->
+    <delete id="truncateTable">
+        TRUNCATE TABLE sixs_task_templates
+    </delete>
+
+    <!-- 批量插入或更新 (ON DUPLICATE KEY UPDATE) -->
+    <insert id="batchInsertOrUpdate" parameterType="list">
+        INSERT INTO sixs_task_templates (
+        template_name, group_name, shift, weekday,
+        task_content, task_standard, required_images,
+        is_active, created_at, updated_at
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.templateName}, #{item.groupName}, #{item.shift}, #{item.weekday},
+            #{item.taskContent}, #{item.taskStandard}, #{item.requiredImages},
+            #{item.isActive}, NOW(), NOW()
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        template_name = VALUES(template_name),
+        group_name = VALUES(group_name),
+        shift = VALUES(shift),
+        weekday = VALUES(weekday),
+        task_content = VALUES(task_content),
+        task_standard = VALUES(task_standard),
+        required_images = VALUES(required_images),
+        is_active = VALUES(is_active),
+        updated_at = NOW()
+    </insert>
+
 
 
 </mapper>

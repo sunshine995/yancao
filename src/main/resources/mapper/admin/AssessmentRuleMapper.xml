@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.admin.AssessmentRuleMapper">
+
+    <select id="selectList" resultType="com.office.yancao.entity.admin.AssessmentRule">
+        SELECT *
+        FROM assessment_rule
+        WHERE 1 = 1
+        <if test="q.ruleType != null and q.ruleType != ''">
+            AND rule_type = #{q.ruleType}
+        </if>
+        <if test="q.ruleSection != null and q.ruleSection != ''">
+            AND rule_section = #{q.ruleSection}
+        </if>
+        <if test="q.keyword != null and q.keyword != ''">
+            AND rule_name LIKE CONCAT('%', #{q.keyword}, '%')
+        </if>
+        <if test="q.status != null">
+            AND status = #{q.status}
+        </if>
+        ORDER BY rule_section, rule_code
+    </select>
+
+    <select id="selectByRuleCode" resultType="com.office.yancao.entity.admin.AssessmentRule">
+        SELECT * FROM assessment_rule WHERE rule_code = #{ruleCode}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO assessment_rule
+        (rule_code, rule_type, rule_section, rule_name,
+         penalty_amount, penalty_unit, remark, status)
+        VALUES
+        (#{ruleCode}, #{ruleType}, #{ruleSection}, #{ruleName},
+         #{penaltyAmount}, #{penaltyUnit}, #{remark}, #{status})
+    </insert>
+
+    <update id="updateById">
+        UPDATE assessment_rule
+        SET rule_section = #{ruleSection},
+            rule_name = #{ruleName},
+            penalty_amount = #{penaltyAmount},
+            penalty_unit = #{penaltyUnit},
+            remark = #{remark},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE assessment_rule
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectByRuleType" resultType="com.office.yancao.entity.admin.AssessmentRule">
+        SELECT *
+        FROM assessment_rule
+        WHERE rule_type = #{ruleType}
+        ORDER BY rule_section, rule_code
+    </select>
+
+    <delete id="deleteByRuleType">
+        DELETE FROM assessment_rule WHERE rule_type = #{ruleType}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO assessment_rule
+        (
+        rule_code,
+        rule_type,
+        rule_section,
+        rule_name,
+        penalty_amount,
+        penalty_unit,
+        remark,
+        status
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.ruleCode},
+            #{item.ruleType},
+            #{item.ruleSection},
+            #{item.ruleName},
+            #{item.penaltyAmount},
+            #{item.penaltyUnit},
+            #{item.remark},
+            #{item.status}
+            )
+        </foreach>
+    </insert>
+
+    <select id="matchRule" resultType="com.office.yancao.entity.admin.AssessmentRule">
+        SELECT
+        id,
+        rule_code AS ruleCode,
+        rule_type AS ruleType,
+        rule_section AS ruleSection,
+        rule_name AS ruleName,
+        penalty_amount AS penaltyAmount,
+        penalty_unit AS penaltyUnit
+        FROM assessment_rule
+        WHERE rule_type = #{ruleType}
+        AND status = 1
+        <if test="keywords != null and keywords.size() > 0">
+            AND (
+            <foreach collection="keywords" item="kw" separator=" OR ">
+                rule_name LIKE CONCAT('%', #{kw}, '%')
+            </foreach>
+            )
+        </if>
+        ORDER BY rule_section
+        LIMIT 20
+    </select>
+
+
+</mapper>

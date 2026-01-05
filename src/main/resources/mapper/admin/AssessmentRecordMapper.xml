@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.admin.AssessmentRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.office.yancao.entity.admin.AssessmentRecord">
+        <id column="id" property="id"/>
+        <result column="assessment_type" property="assessmentType"/>
+        <result column="dept" property="dept"/>
+        <result column="shift" property="shift"/>
+        <result column="person" property="person"/>
+        <result column="assessment_date" property="assessmentDate"/>
+
+        <result column="content" property="content"/>
+        <result column="opinion" property="opinion"/>
+        <result column="remark" property="remark"/>
+
+        <result column="trainer" property="trainer"/>
+        <result column="rectify_result" property="rectifyResult"/>
+        <result column="rectify_status" property="rectifyStatus"/>
+
+        <result column="checker" property="checker"/>
+        <result column="leader" property="leader"/>
+
+        <result column="photo_urls" property="photoUrls" typeHandler="com.office.yancao.untils.JsonListTypeHandler"/>
+        <result column="extra2" property="extra2"/>
+        <result column="extra3" property="extra3"/>
+
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 新增 -->
+    <insert id="insert" parameterType="AssessmentRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO assessment_record (
+            assessment_type, dept, shift, person, assessment_date,
+            content, opinion, remark,
+            trainer, rectify_result, rectify_status,
+            checker, leader,
+            photo_urls, extra2, extra3,
+            creator
+        ) VALUES (
+                     #{assessmentType}, #{dept}, #{shift}, #{person}, #{assessmentDate},
+                     #{content}, #{opinion}, #{remark},
+                     #{trainer}, #{rectifyResult}, #{rectifyStatus},
+                     #{checker}, #{leader},
+                     #{photoUrls, typeHandler=com.office.yancao.untils.JsonListTypeHandler}, #{extra2}, #{extra3},
+                     #{creator}
+                 )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM assessment_record
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 最近记录 -->
+    <select id="selectRecentList" resultMap="BaseResultMap">
+        SELECT * FROM assessment_record
+        WHERE is_deleted = 0
+        ORDER BY create_time DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 按类型查询 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT * FROM assessment_record
+        WHERE assessment_type = #{assessmentType}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 更新 -->
+    <update id="updateById" parameterType="AssessmentRecord">
+        UPDATE assessment_record
+        SET
+            dept = #{dept},
+            shift = #{shift},
+            person = #{person},
+            assessment_date = #{assessmentDate},
+            content = #{content},
+            opinion = #{opinion},
+            remark = #{remark},
+            trainer = #{trainer},
+            rectify_result = #{rectifyResult},
+            rectify_status = #{rectifyStatus},
+            checker = #{checker},
+            leader = #{leader},
+            photo_urls = #{photoUrls, typeHandler=com.office.yancao.untils.JsonListTypeHandler},
+            extra2 = #{extra2},
+            extra3 = #{extra3}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 1. 获取考核统计数据 -->
+    <select id="selectAssessmentStats" resultType="com.office.yancao.dto.admin.Assessment.AssessmentStatsDTO">
+        SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN assessment_type = 'safety' THEN 1 ELSE 0 END) AS safety,
+        SUM(CASE WHEN assessment_type = 'site' THEN 1 ELSE 0 END) AS site,
+        SUM(CASE WHEN assessment_type = 'process' THEN 1 ELSE 0 END) AS process
+        FROM assessment_record
+        WHERE is_deleted = 0
+        <if test="startDate != null and endDate != null">
+            AND assessment_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        <if test="startDate == null and endDate == null">
+            AND YEAR(assessment_date) = YEAR(CURDATE())
+            AND MONTH(assessment_date) = MONTH(CURDATE())
+        </if>
+    </select>
+
+    <!-- 2. 获取考核类型分布 -->
+    <select id="selectTypeDistribution" resultType="com.office.yancao.dto.admin.Assessment.TypeDistributionDTO">
+        SELECT
+        CASE
+        WHEN assessment_type = 'safety' THEN '安全考核'
+        WHEN assessment_type = 'site' THEN '现场考核'
+        WHEN assessment_type = 'process' THEN '工艺考核'
+        ELSE assessment_type
+        END AS name,
+        COUNT(*) AS value,
+        CONCAT(ROUND(COUNT(*) * 100.0 / (
+        SELECT COUNT(*) FROM assessment_record
+        WHERE is_deleted = 0
+        <if test="startDate != null and endDate != null">
+            AND assessment_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        <if test="startDate == null and endDate == null">
+            AND YEAR(assessment_date) = YEAR(CURDATE())
+            AND MONTH(assessment_date) = MONTH(CURDATE())
+        </if>
+        ), 1), '%') AS percentage
+        FROM assessment_record
+        WHERE is_deleted = 0
+        <if test="startDate != null and endDate != null">
+            AND assessment_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        <if test="startDate == null and endDate == null">
+            AND YEAR(assessment_date) = YEAR(CURDATE())
+            AND MONTH(assessment_date) = MONTH(CURDATE())
+        </if>
+        GROUP BY assessment_type
+        ORDER BY value DESC
+    </select>
+
+    <!-- 3. 获取班次分析数据 -->
+    <select id="selectShiftAnalysis" resultType="com.office.yancao.dto.admin.Assessment.ShiftAnalysisDTO">
+        SELECT
+        shift,
+        COUNT(*) AS count,
+        CONCAT(ROUND(COUNT(*) * 100.0 / (
+        SELECT COUNT(*) FROM assessment_record
+        WHERE is_deleted = 0
+        <if test="startDate != null and endDate != null">
+            AND assessment_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        <if test="startDate == null and endDate == null">
+            AND YEAR(assessment_date) = YEAR(CURDATE())
+            AND MONTH(assessment_date) = MONTH(CURDATE())
+        </if>
+        ), 1), '%') AS rate
+        FROM assessment_record
+        WHERE is_deleted = 0
+        <if test="startDate != null and endDate != null">
+            AND assessment_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        <if test="startDate == null and endDate == null">
+            AND YEAR(assessment_date) = YEAR(CURDATE())
+            AND MONTH(assessment_date) = MONTH(CURDATE())
+        </if>
+        GROUP BY shift
+        ORDER BY count DESC
+    </select>
+
+
+</mapper>
