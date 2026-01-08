@@ -40,7 +40,6 @@ public class AssessmentRecordService {
     }
 
     public AssessmentStatsDTO getAssessmentStats(LocalDate startDate, LocalDate endDate) {
-        System.out.println(startDate);
         return mapper.selectAssessmentStats(startDate, endDate);
     }
 

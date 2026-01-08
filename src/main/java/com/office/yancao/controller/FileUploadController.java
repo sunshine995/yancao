@@ -42,6 +42,7 @@ public class FileUploadController {
                 bizType = "common";
             }
 
+
             // 创建上传目录
             // 3. 按 业务 / 年月 创建目录
             String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));

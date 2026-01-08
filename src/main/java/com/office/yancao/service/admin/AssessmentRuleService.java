@@ -7,8 +7,10 @@ import com.office.yancao.dto.admin.AssessmentRuleExcelDTO;
 import com.office.yancao.dto.admin.AssessmentRuleQueryDTO;
 import com.office.yancao.entity.admin.AssessmentRule;
 import com.office.yancao.mapper.admin.AssessmentRuleMapper;
+import com.office.yancao.untils.SimpleKeywordSplitter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +20,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AssessmentRuleService {
+
+    @Autowired
+    private SimpleKeywordSplitter keywordSplitter;
 
     private final AssessmentRuleMapper mapper;
 
@@ -120,6 +127,7 @@ public class AssessmentRuleService {
         if (list == null || list.isEmpty()) {
             throw new RuntimeException("Excel 中未读取到任何规则数据");
         }
+        System.out.println(list.size());
 
         // 删除旧数据（可保留事务）
         deleteOldRules(ruleType);
@@ -163,30 +171,52 @@ public class AssessmentRuleService {
     // 匹配
     public List<AssessmentRule> matchRule(String ruleType, String keyword) {
 
-        // 拆关键词（简单实用版）
-        List<String> keywords = splitKeyword(keyword);
+        // 1. 智能分词
+        List<String> keywords = keywordSplitter.splitKeyword(keyword);
 
-        return mapper.matchRule(ruleType, keywords);
+
+        if (keywords.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<AssessmentRule> assessmentRules = mapper.matchRule(ruleType, keywords);
+
+        // 3. 二次计算更精确的分数
+        List<AssessmentRule> scoredRules = assessmentRules.stream()
+                .map(rule -> {
+                    rule.setMatchScore(calculateSimpleScore(rule, keywords));
+                    return rule;
+                })
+                .filter(rule -> rule.getMatchScore() > 0)  // 过滤零分
+                .sorted(Comparator.comparing(AssessmentRule::getMatchScore).reversed())
+                .limit(20)
+                .collect(Collectors.toList());
+        return scoredRules;
     }
 
     /**
-     * 简单中文拆词（第一版足够用）
+     * 简单计分规则
      */
-    private List<String> splitKeyword(String text) {
-        List<String> list = new ArrayList<>();
+    private double calculateSimpleScore(AssessmentRule rule, List<String> keywords) {
+        String ruleName = rule.getRuleName().toLowerCase();
+        double score = 0;
 
-        // 按常见分隔符切
-        String[] arr = text.split("[，。,.、\\s]+");
+        for (String keyword : keywords) {
+            if (ruleName.equals(keyword)) {
+                score += 3.0;  // 完全匹配
+            } else if (ruleName.contains(keyword)) {
+                score += 1.0;  // 部分匹配
+            }
 
-        for (String s : arr) {
-            if (s.length() >= 2) {
-                list.add(s);
+            // 关键词越长，权重越高
+            if (keyword.length() >= 3) {
+                score += 0.5;
             }
         }
-        return list;
+
+        // 归一化到0-100分
+        double maxScore = keywords.size() * 3.5;
+        return (score / maxScore) * 100;
     }
-
-
 
 }
 

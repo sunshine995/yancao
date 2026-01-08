@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.admin.LearningResourceMapper">
+
+    <resultMap id="BaseMap" type="com.office.yancao.entity.admin.LearningResource">
+        <id property="id" column="id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="title" column="title"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="content" column="content"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="duration" column="duration"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO learning_resource
+        (category_id, title, resource_type, cover_url, content, file_url, duration, status)
+        VALUES
+        (#{categoryId}, #{title}, #{resourceType}, #{coverUrl},
+        #{content}, #{fileUrl}, #{duration}, #{status})
+    </insert>
+
+    <select id="selectById" resultMap="BaseMap">
+        SELECT * FROM learning_resource WHERE id = #{id}
+    </select>
+
+    <select id="selectPage" resultMap="BaseMap">
+        SELECT *
+        FROM learning_resource
+        WHERE status = 1
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+        <if test="resourceType != null and resourceType != ''">
+            AND resource_type = #{resourceType}
+        </if>
+        <if test="title != null and title != ''">
+            AND title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE learning_resource
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete FROM learning_resource
+        WHERE id = #{id}
+    </delete>
+
+    <select id="getResourceList" resultType="com.office.yancao.dto.admin.ResourceListByTypeDTO">
+        SELECT r.id,
+               r.title,
+               r.resource_type,
+               COUNT(lr.id) AS studyCount
+        FROM learning_resource r
+                 LEFT JOIN learning_record lr ON r.id = lr.resource_id
+        WHERE r.category_id = #{categoryId}
+        GROUP BY r.id
+
+    </select>
+
+</mapper>

@@ -91,7 +91,6 @@ public class WorkService {
         if (userClass.equals("管理组")){
             userClass = getClasses();
         }
-
         // 计算当天时间范围
         Date startTime = getStartTimeOfToday();
         Date endTime = getEndTimeOfToday();
@@ -134,7 +133,7 @@ public class WorkService {
         } else if ((time.compareTo(LocalTime.of(16, 0)) >= 0 && time.compareTo(LocalTime.of(23, 59, 59)) <= 0)
                 || (time.compareTo(LocalTime.MIDNIGHT) >= 0 && time.compareTo(LocalTime.of(1, 0)) <= 0)) {
             // 16:00 <= 当前时间 <= 23:59:59 或 00:00 <= 当前时间 <= 01:00 → 乙班
-            ShiftSchedule day = shiftScheduleMapper.selectByDateAndDay(LocalDate.now(), "DAY");
+            ShiftSchedule day = shiftScheduleMapper.selectByDateAndDay(LocalDate.now(), "MID");
             if (day.getTeam().equals("JIA")){
                 currentShift = "甲班";
             }else {

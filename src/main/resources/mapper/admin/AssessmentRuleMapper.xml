@@ -99,7 +99,14 @@
         rule_section AS ruleSection,
         rule_name AS ruleName,
         penalty_amount AS penaltyAmount,
-        penalty_unit AS penaltyUnit
+        penalty_unit AS penaltyUnit,
+        -- 使用第一个关键词进行评分
+        CASE
+        WHEN rule_name = #{keywords[0]} THEN 100
+        WHEN rule_name LIKE CONCAT(#{keywords[0]}, '%') THEN 80
+        WHEN rule_name LIKE CONCAT('%', #{keywords[0]}) THEN 70
+        ELSE 60
+        END AS matchScore
         FROM assessment_rule
         WHERE rule_type = #{ruleType}
         AND status = 1
@@ -110,8 +117,17 @@
             </foreach>
             )
         </if>
-        ORDER BY rule_section
-        LIMIT 20
+        ORDER BY
+        <if test="keywords != null and keywords.size() > 0">
+            CASE
+            WHEN rule_name LIKE CONCAT('%', #{keywords[0]}, '%') THEN 0
+            ELSE 1
+            END,
+        </if>
+        matchScore DESC,
+        LENGTH(rule_name) ASC,
+        rule_section
+        LIMIT 30
     </select>
 
 

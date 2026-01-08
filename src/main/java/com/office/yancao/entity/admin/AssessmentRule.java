@@ -2,6 +2,7 @@ package com.office.yancao.entity.admin;
 
 import lombok.Data;
 
+import java.beans.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -29,4 +30,6 @@ public class AssessmentRule {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    private Double MatchScore;
 }
