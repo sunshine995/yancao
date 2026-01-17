@@ -5,7 +5,7 @@
     <resultMap id="BaseResultMap" type="com.office.yancao.entity.DailyShiftRecord">
         <id column="id" property="id"/>
         <result column="record_date" property="recordDate"/>
-        <result column="shift" property="classes"/>
+        <result column="classes" property="classes"/>
         <result column="production_box" property="productionBox"/>
         <result column="production_board" property="productionBoard"/>
         <result column="surplus_box" property="surplusBox"/>
@@ -68,5 +68,36 @@
         ORDER BY FIELD(classes, '甲班', '乙班')
     </select>
 
+    <!-- 查询箱皮结算记录（支持条件筛选，分页由PageHelper自动处理） -->
+    <select id="selectBoxSettlementRecords" resultMap="BaseResultMap">
+        SELECT * FROM daily_shift_record
+        WHERE 1=1
+        <if test="classes != null and classes != ''">
+            AND classes = #{classes}
+        </if>
+        <if test="startDate != null">
+            AND record_date >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND record_date &lt;= #{endDate}
+        </if>
+        ORDER BY record_date DESC, FIELD(classes, '甲班', '乙班')
+    </select>
+
+    <!-- 查询箱皮结算记录总数（用于分页） -->
+    <select id="selectBoxSettlementRecordsCount" resultType="int">
+        SELECT COUNT(*)
+        FROM daily_shift_record
+        WHERE 1=1
+        <if test="classes != null and classes != ''">
+            AND classes = #{classes}
+        </if>
+        <if test="startDate != null">
+            AND record_date >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND record_date &lt;= #{endDate}
+        </if>
+    </select>
 
 </mapper>

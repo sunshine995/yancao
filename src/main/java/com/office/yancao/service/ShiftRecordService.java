@@ -1,6 +1,9 @@
 package com.office.yancao.service;
 
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.office.yancao.dto.BoxSettlementQueryDTO;
 import com.office.yancao.dto.RecordSubmitReqDTO;
 import com.office.yancao.dto.UsageItem;
 import com.office.yancao.entity.DailyShiftRecord;
@@ -132,5 +135,21 @@ public class ShiftRecordService {
         LocalDateTime currentStart = date.atStartOfDay();
         DailyShiftRecord dailyShiftRecord = recordMapper.selectLatestBefore(currentStart);
         return dailyShiftRecord;
+    }
+
+    // 查询箱皮结算记录（支持分页和条件筛选）
+    public PageInfo<DailyShiftRecord> selectBoxSettlementRecords(BoxSettlementQueryDTO queryDTO) {
+        // 设置分页参数
+        PageHelper.startPage(queryDTO.getPage(), queryDTO.getPageSize());
+        
+        // 调用Mapper查询记录（PageHelper会自动处理分页）
+        List<DailyShiftRecord> records = recordMapper.selectBoxSettlementRecords(
+                queryDTO.getClasses(),
+                queryDTO.getStartDate(),
+                queryDTO.getEndDate()
+        );
+        
+        // 包装成PageInfo返回
+        return new PageInfo<>(records);
     }
 }

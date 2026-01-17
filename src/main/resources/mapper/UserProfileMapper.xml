@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.UserProfileMapper">
+
+    <!-- 用户组织信息 -->
+    <select id="selectUserOrgs" resultType="com.office.yancao.dto.OrgDTO">
+        SELECT
+        o.id        AS orgId,
+        o.org_name  AS orgName,
+        o.org_type  AS orgType,
+        uo.org_role AS orgRole
+        FROM t_user_org uo
+        JOIN t_org o ON uo.org_id = o.id
+        WHERE uo.user_id = #{userId}
+    </select>
+
+    <!-- 用户岗位信息 -->
+    <select id="selectUserPosts" resultType="com.office.yancao.dto.PostDTO">
+        SELECT
+        p.id            AS postId,
+        p.post_name     AS postName,
+        pp.support_name AS supportName,
+
+        s.id            AS sectionId,
+        s.org_name      AS sectionName,
+        up.line         AS line
+        FROM t_user_post up
+        JOIN t_post p ON up.post_id = p.id
+        JOIN t_post pp ON up.support_id = pp.id
+        JOIN t_org s ON up.section_id = s.id
+        WHERE up.user_id = #{userId}
+    </select>
+
+    <select id="selectMembersByOrg" resultType="com.office.yancao.dto.OrgMemberDTO">
+        SELECT
+            u.id        AS userId,
+            u.username  AS username,
+            uo.org_role AS orgRole
+        FROM t_user_org uo
+                 JOIN t_user u ON uo.user_id = u.id
+        WHERE uo.org_id = #{orgId}
+    </select>
+
+    <select id="selectUserFullInfo"
+            resultType="com.office.yancao.dto.UserFullInfoDTO">
+        SELECT
+            u.id            AS userId,
+            u.username      AS username,
+            u.phone         AS phone,
+            u.employee_id   AS employeeId,
+
+            -- 工段信息（取第一条，若多值可改为聚合）
+            MAX(s.id)       AS sectionId,
+            MAX(s.org_name) AS sectionName,
+
+            -- 岗位信息（取第一条，若多值可改为聚合）
+            MAX(up.line)    AS line,
+            MAX(p.id)       AS postId,
+            MAX(p.post_name) AS postName,
+            MAX(pp.post_name) AS supportName
+
+        FROM t_user u
+                 LEFT JOIN t_user_org uos ON uos.user_id = u.id
+                 LEFT JOIN t_org s ON s.id = uos.org_id AND s.org_type = 'section'
+                 LEFT JOIN t_user_post up ON up.user_id = u.id
+                 LEFT JOIN t_post p ON p.id = up.post_id
+                 LEFT JOIN t_post pp ON pp.id = up.support_id
+
+        WHERE u.id = #{userId}
+        GROUP BY u.id;
+    </select>
+
+
+    <select id="selectAllUserByClass"
+            resultType="com.office.yancao.dto.UserFullInfoDTO">
+        SELECT
+            u.id            AS userId,
+            u.username      AS username,
+            u.phone         AS phone,
+            u.employee_id   AS employeeId,
+
+            -- 工段信息（和单人查询逻辑一致：取第一条，MAX聚合）
+            MAX(s.id)       AS sectionId,
+            MAX(s.org_name) AS sectionName,
+
+            -- 岗位信息（和单人查询逻辑一致：取第一条，MAX聚合）
+            MAX(up.line)    AS line,
+            MAX(p.id)       AS postId,
+            MAX(p.post_name) AS postName,
+            MAX(pp.post_name) AS supportName
+
+        FROM t_user u
+                 -- 核心：先筛选出甲班的用户（INNER JOIN确保只返回甲班人员）
+                 INNER JOIN (
+            -- 子查询：获取所有关联甲班的用户ID（去重，避免重复行）
+            SELECT DISTINCT uoc.user_id
+            FROM t_user_org uoc
+                     LEFT JOIN t_org c ON c.id = uoc.org_id
+            WHERE c.org_type = 'class'  -- 限定是班级类型
+              AND c.org_name = #{class}   -- 筛选甲班
+        ) AS class_user ON class_user.user_id = u.id
+
+            -- 以下关联逻辑和你单人查询完全一致
+                 LEFT JOIN t_user_org uos ON uos.user_id = u.id
+                 LEFT JOIN t_org s ON s.id = uos.org_id AND s.org_type = 'section'
+                 LEFT JOIN t_user_post up ON up.user_id = u.id
+                 LEFT JOIN t_post p ON p.id = up.post_id
+                 LEFT JOIN t_post pp ON pp.id = up.support_id
+
+-- 按用户ID分组，确保每个人员只返回一行（和单人查询的GROUP BY逻辑一致）
+        GROUP BY u.id, u.username, u.phone, u.employee_id
+    </select>
+
+
+
+</mapper>

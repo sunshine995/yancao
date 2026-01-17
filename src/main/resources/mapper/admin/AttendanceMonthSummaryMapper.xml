@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.admin.AttendanceMonthSummaryMapper">
+
+    <delete id="deleteByMonth">
+        DELETE FROM attendance_month_summary
+        WHERE year_months = #{yearMonths}
+    </delete>
+
+    <insert id="insertByMonth">
+        INSERT INTO attendance_month_summary (
+        user_id,
+        user_name,
+        group_name,
+        year_months,
+        work_days,
+        extend_hours,
+        leave_hours,
+        vacation_hours,
+        net_hours,
+        carry_over_hours,
+        settle_flag,
+        create_time
+        )
+        SELECT
+        d.user_id,
+        d.user_name,
+        d.group_name,
+        #{yearMonths}                                         AS year_months,
+
+        /* 出勤天数：WORK / DUTY 计 1 天，其余 0 */
+        SUM(
+        CASE
+        WHEN d.work_status IN ('WORK', 'DUTY') THEN 1
+        ELSE 0
+        END
+        )                                                     AS work_days,
+
+        /* 延点小时 */
+        IFNULL(SUM(
+        CASE
+        WHEN e.event_type = 'EXTEND' THEN e.duration_hours
+        ELSE 0
+        END
+        ), 0)                                                 AS extend_hours,
+
+        /* 离岗小时 */
+        IFNULL(SUM(
+        CASE
+        WHEN e.event_type = 'LEAVE' THEN e.duration_hours
+        ELSE 0
+        END
+        ), 0)                                                 AS leave_hours,
+
+        /* 请假小时 */
+        IFNULL(SUM(
+        CASE
+        WHEN e.event_type = 'VACATION' THEN e.duration_hours
+        ELSE 0
+        END
+        ), 0)                                                 AS vacation_hours,
+
+        /* 净工时 */
+        IFNULL(SUM(
+        CASE WHEN e.event_type = 'EXTEND' THEN e.duration_hours ELSE 0 END
+        ), 0)
+        -
+        IFNULL(SUM(
+        CASE WHEN e.event_type = 'LEAVE' THEN e.duration_hours ELSE 0 END
+        ), 0)                                                 AS net_hours,
+
+        0                                                     AS carry_over_hours,
+        0                                                     AS settle_flag,
+        NOW()                                                 AS create_time
+
+        FROM attendance_day d
+        LEFT JOIN attendance_event e
+        ON d.user_id = e.user_id
+        AND d.attendance_date = e.attendance_date
+
+        WHERE DATE_FORMAT(d.attendance_date, '%Y-%m') = #{yearMonths}
+        AND d.attendance_date &lt; CURDATE()
+
+        GROUP BY
+        d.user_id,
+        d.user_name,
+        d.group_name;
+
+    </insert>
+
+</mapper>

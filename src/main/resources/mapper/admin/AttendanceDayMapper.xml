@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.office.yancao.mapper.admin.AttendanceDayMapper">
+
+    <resultMap id="AttendanceDayMap" type="com.office.yancao.entity.admin.AttendanceDay">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="groupName" column="group_name"/>
+        <result property="attendanceDate" column="attendance_date"/>
+        <result property="shiftType" column="shift_type"/>
+        <result property="workStatus" column="work_status"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectByUserAndDate" resultMap="AttendanceDayMap">
+        SELECT * FROM attendance_day
+        WHERE user_id = #{userId}
+          AND attendance_date = #{date}
+    </select>
+
+    <select id="selectByGroupAndDateRange" resultMap="AttendanceDayMap">
+        SELECT * FROM attendance_day
+        WHERE group_name = #{groupName}
+          AND attendance_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY attendance_date, user_id
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO attendance_day
+        (user_id, user_name, group_name, attendance_date,
+         shift_type, work_status, remark, create_by)
+        VALUES
+        (#{userId}, #{userName}, #{groupName}, #{attendanceDate},
+         #{shiftType}, #{workStatus}, #{remark}, #{createBy})
+    </insert>
+
+    <update id="update">
+        UPDATE attendance_day
+        SET
+            shift_type = #{shiftType},
+            work_status = #{workStatus},
+            remark = #{remark}
+        WHERE user_id = #{userId}
+          AND attendance_date = #{attendanceDate}
+    </update>
+
+    <delete id="deleteByUserAndDate">
+        DELETE FROM attendance_day
+        WHERE user_id = #{userId}
+          AND attendance_date = #{date}
+    </delete>
+
+</mapper>

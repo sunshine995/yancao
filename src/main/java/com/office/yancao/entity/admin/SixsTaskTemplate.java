@@ -1,5 +1,6 @@
 package com.office.yancao.entity.admin;
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -13,18 +14,26 @@ public class SixsTaskTemplate implements Serializable {
 
     private Integer id;
 
-    private String templateName;
-
+    @ExcelProperty("6s区域")
     private String groupName;
 
-    private String shift;
-
+    @ExcelProperty("星期(1-7)")
     private Integer weekday;
 
+    @ExcelProperty("白/中")
+    private String shift;
+
+    @ExcelProperty("任务名称")
+    private String templateName;
+
+
+    @ExcelProperty("任务内容")
     private String taskContent;
 
+    @ExcelProperty("任务标准")
     private String taskStandard;
 
+    @ExcelProperty("需要拍摄几张图片")
     private Integer requiredImages;
 
     private Boolean isActive;

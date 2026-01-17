@@ -21,7 +21,7 @@ public class SixsTask implements ScheduledTaskRunner {
 
     @Override
     public String getTaskName() {
-        return "每月一号更新班次状态";
+        return "每天定时推送6s任务";
     }
 
     @Override

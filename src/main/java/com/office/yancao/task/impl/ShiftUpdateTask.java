@@ -24,6 +24,6 @@ public class ShiftUpdateTask implements ScheduledTaskRunner {
 
     @Override
     public String getCronExpression() {
-        return "0 36 10 1 * ?"; // 每月一号5点执行
+        return "0 36 10 1 * ?";
     }
 }

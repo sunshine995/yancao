@@ -22,8 +22,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class SixsTaskTemplateService {
@@ -115,8 +114,11 @@ public class SixsTaskTemplateService {
             // 查询数据
              List<SixsTaskTemplate> templates = taskTemplateMapper.findAll();
 
+            Set<String> excludeColumns = new HashSet<>(Arrays.asList("id", "isActive", "createdAt", "updatedAt"));
+
             // 导出Excel
             EasyExcel.write(response.getOutputStream(), SixsTaskTemplate.class)
+                    .excludeColumnFieldNames(excludeColumns)
                     .sheet("6S任务模板")
                     .doWrite(templates);
         } catch (IOException e) {
